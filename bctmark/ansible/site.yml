@@ -1,0 +1,6 @@
+---
+- name: Deploy Ethereum
+  hosts: peer
+  roles:
+    - ethereum
+

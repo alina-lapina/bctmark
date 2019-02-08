@@ -1,0 +1,17 @@
+- name: Download Parity installer
+  get_url: 
+    url: https://get.parity.io 
+    dest: /tmp/parity_installer.sh
+
+- name: Make Parity installer executable
+  file:
+    dest: /tmp/parity_installer.sh
+    mode: a+x
+
+- name: Run Parity installer
+  shell: /tmp/parity_installer.sh
+
+- name: Clean-up Parity installer
+  file: 
+    path: /tmp/parity_installer.sh 
+    state: absent

@@ -1,3 +1,26 @@
+# Trash
+.Trash*
+
+# Enoslib
+/Vagrantfile
+/enos_*/
+/ansible/hosts
+/current
+/test_case_1
+# Don't trace any yaml/yml in the root dir
+# default conf.yaml would need to be force added
+# or add an exception here
+/*.yaml
+
+# OS-specific
+.DS_Store
+
+.vagrant
+
+# Ansible
+*.retry
+
+# Python
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -45,7 +68,6 @@ nosetests.xml
 coverage.xml
 *.cover
 .hypothesis/
-.pytest_cache/
 
 # Translations
 *.mo
@@ -54,7 +76,6 @@ coverage.xml
 # Django stuff:
 *.log
 local_settings.py
-db.sqlite3
 
 # Flask stuff:
 instance/
@@ -90,6 +111,9 @@ ENV/
 env.bak/
 venv.bak/
 
+# PyCharm project settings
+.idea/
+
 # Spyder project settings
 .spyderproject
 .spyproject
@@ -102,3 +126,17 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+1
+© 2017 GitHub, Inc.
+Terms
+Privacy
+Security
+Status
+Help
+Contact GitHub
+API
+Training
+Shop
+Blog
+About#
+
