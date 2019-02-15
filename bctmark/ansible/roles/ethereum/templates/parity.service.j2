@@ -1,0 +1,20 @@
+[Unit]
+Description=Ethereum Parity client
+After=network.target
+
+[Service]
+User={{parity_user}}
+Group={{parity_group}}
+
+Type=simple
+ExecStart=/usr/bin/parity --network-id 1234567899
+Restart=always
+PrivateTmp=true
+TimeoutStopSec=120s
+TimeoutStartSec=20s
+RestartSec=15s
+StartLimitInterval=4h
+StartLimitBurst=500
+
+[Install]
+WantedBy=multi-user.target
