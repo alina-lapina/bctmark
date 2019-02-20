@@ -7,7 +7,7 @@ User={{parity_user}}
 Group={{parity_group}}
 
 Type=simple
-ExecStart=/usr/bin/parity --network-id 1234567899
+ExecStart=/usr/bin/parity --config /home/{{parity_user}}/config.toml
 Restart=always
 PrivateTmp=true
 TimeoutStopSec=120s

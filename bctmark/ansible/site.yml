@@ -1,6 +1,12 @@
 ---
-- name: Deploy Ethereum
+- name: Deploy Ethereum bootnodes
+  hosts: bootnode
+  roles:
+    - role: ethereum
+      is_bootnode: true
+
+- name: Deploy Ethereum nodes
   hosts: peer
   roles:
-    - ethereum
-
+    - role: ethereum
+      is_bootnode: false

@@ -1,28 +1,16 @@
 - group: name={{ parity_group }} system=yes state=present
 - user: name={{ parity_user }} group={{ parity_group }} home={{ parity_home }} state=present
 
-- name: Download Parity installer
-  get_url: 
-    url: "{{ parity_installer_url }}"
-    dest: /tmp/parity_installer.sh
+- name: Check installed parity version
+  shell: parity --version | grep 'version Parity' | sed -n -E -e 's/.*\/(v[0-9]+\.[0-9]+\.[0-9]+).*/\1/p'
+  register: parity_version
+  ignore_errors: yes
+  failed_when: false
+  changed_when: false
+  check_mode: no
 
-- name: Make Parity installer executable
-  file:
-    dest: /tmp/parity_installer.sh
-    mode: a+x
+- set_fact: parity_installed={{ parity_version.stdout_lines[0] is defined }}
 
-- name: Run Parity installer
-  shell: /tmp/parity_installer.sh
-
-- name: configuration file for systemd parity service
-  template:
-    src: templates/parity.service.j2
-    dest: /etc/systemd/system/parity.service
-    owner: root
-    group: root
-    mode: 0644
-  notify:
-    - reload systemd
-
-- name: enable parity service
-  service: name=parity enabled=yes state=started
+- name: Install parity client
+  include: install_client.yml
+  when: not parity_installed

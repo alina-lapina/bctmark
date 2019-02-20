@@ -1,0 +1,5 @@
+[network]
+id = 1234567899
+nat = "extip:{{ ansible_eth1.ipv4.address }}"
+reserved_only = false
+reserved_peers = "/home/{{parity_user}}/list_bootnodes"
