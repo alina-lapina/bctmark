@@ -3,3 +3,19 @@ id = 1234567899
 nat = "extip:{{ ansible_eth1.ipv4.address }}"
 reserved_only = false
 reserved_peers = "/home/{{parity_user}}/list_bootnodes"
+
+[websockets]
+disable = false
+port = 8546
+interface = "all"
+origins = ["all"]
+apis = ["web3", "eth", "pubsub", "net", "parity", "parity_pubsub", "traces", "rpc", "shh", "shh_pubsub"]
+hosts = ["all"]
+
+[rpc]
+disable = false
+port = 8545
+interface = "all"
+cors = ["all"]
+apis = ["web3", "eth", "pubsub", "net", "parity", "parity_pubsub", "traces", "rpc", "shh", "shh_pubsub"]
+hosts = ["all"]
