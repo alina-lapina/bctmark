@@ -1,0 +1,33 @@
+- name: kill Parity processes
+  shell: pkill parity
+  ignore_errors: yes
+
+- name: disable Parity service
+  service: 
+    name: parity 
+    enabled: no
+
+- name: Delete Parity service file
+  file:
+    dest: /etc/systemd/system/parity.service
+    state: absent
+
+- name: Delete Parity command
+  file:
+    dest: /usr/bin/parity
+    state: absent
+
+- name: Delete Parity home directory
+  file:
+    dest: "{{ parity_home }}"
+    state: absent
+
+- name: Delete user Parity
+  user:
+    name: "{{ parity_user }}"
+    state: absent
+
+- name: Delete Parity group
+  group: 
+    name: "{{ parity_group }}" 
+    state: absent

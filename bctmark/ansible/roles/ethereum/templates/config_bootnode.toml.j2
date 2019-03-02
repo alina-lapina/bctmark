@@ -1,3 +1,8 @@
+[parity]
+base_path = "{{parity_home}}/.local/share/io.parity.ethereum"
+db_path = "{{parity_home}}/.local/share/io.parity.ethereum/chains"
+keys_path = "{{parity_home}}/.local/share/io.parity.ethereum/keys"
+
 [network]
 id = 1234567899
 
@@ -16,3 +21,12 @@ interface = "local"
 cors = ["all"]
 apis = ["web3", "eth", "pubsub", "net", "parity", "parity_pubsub", "traces", "rpc", "shh", "shh_pubsub"]
 hosts = ["all"]
+
+[ipc]
+path = "{{parity_home}}/.local/share/io.parity.ethereum/jsonrpc.ipc"
+
+[dapps]
+path = "{{parity_home}}/.local/share/io.parity.ethereum/dapps"
+
+[secretstore]
+path = "{{parity_home}}/.local/share/io.parity.ethereum/secretstore"

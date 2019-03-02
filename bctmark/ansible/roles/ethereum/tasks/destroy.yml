@@ -1,3 +1,13 @@
-- name: Destroy tasks
-  debug:
-    msg: "Let's destroy (probably before another run)"
+- name: Check installed parity version
+  shell: parity --version | grep 'version Parity' | sed -n -E -e 's/.*\/(v[0-9]+\.[0-9]+\.[0-9]+).*/\1/p'
+  register: parity_version
+  ignore_errors: yes
+  failed_when: false
+  changed_when: false
+  check_mode: no
+
+- set_fact: parity_installed={{ parity_version.stdout_lines[0] is defined }}
+
+- name: Uninstall parity client
+  include: uninstall_client.yml
+  when: parity_installed

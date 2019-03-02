@@ -2,4 +2,4 @@
 parity_installer_url: https://get.parity.io
 parity_user: parity
 parity_group: parity
-parity_home: /home/parity
+parity_home: /tmp/home/parity

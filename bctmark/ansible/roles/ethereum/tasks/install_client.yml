@@ -1,5 +1,21 @@
-- group: name={{ parity_group }} system=yes state=present
-- user: name={{ parity_user }} group={{ parity_group }} home={{ parity_home }} state=present
+- name: Create Parity group
+  group: 
+    name: "{{ parity_group }}"
+    system: yes 
+    state: present
+
+- name: Create Parity home directory
+  file:
+    dest: "{{ parity_home }}"
+    state: directory
+    mode: "0777"
+
+- name: Create Parity user
+  user: 
+    name: "{{ parity_user }}" 
+    group: "{{ parity_group }}"
+    home: "{{ parity_home }}"
+    state: present
 
 - name: Download Parity installer
   get_url: 
@@ -17,7 +33,7 @@
 - name: configuration file for parity bootnode
   template:
     src: templates/config_bootnode.toml.j2
-    dest: "/home/{{ parity_user }}/config.toml"
+    dest: "{{parity_home}}/config.toml"
     owner: "{{ parity_user }}"
     group: "{{ parity_group }}"
   when: is_bootnode
@@ -25,7 +41,7 @@
 - name: configuration file for parity peer
   template:
     src: templates/config_peer.toml.j2
-    dest: "/home/{{ parity_user }}/config.toml"
+    dest: "{{ parity_home }}/config.toml"
     owner: "{{ parity_user }}"
     group: "{{ parity_group }}"
   when: not is_bootnode
@@ -33,7 +49,7 @@
 - name: list of bootnodes peers
   template:
     src: templates/list_bootnodes.j2
-    dest: "/home/{{ parity_user }}/list_bootnodes"
+    dest: "{{ parity_home }}/list_bootnodes"
     owner: "{{ parity_user }}"
     group: "{{ parity_group }}"
   when: not is_bootnode
@@ -52,13 +68,6 @@
 - name: enable parity service
   service: name=parity enabled=yes state=started
 
-- name: wait for JSONRPC API to be available
-  wait_for:
-    host: 127.0.0.1
-    port: 8545
-    delay: 5
-    timeout: 60
-
 - name: Retrieve Enode
   shell: >
     curl
@@ -66,6 +75,9 @@
     -H "Content-Type:application/json" 
     -X POST http://127.0.0.1:8545 | sed -n 's/.*\(enode.*\)@.*/\1/p'
   register: enode
-  warn: false
+  until: enode.stdout is match("enode://[a-zA-Z0-9]+")
+  retries: 10 
+  delay: 5
+  command_warning: false
 
-- debug: msg={{enode.stdout}}@{{ansible_eth1.ipv4.address}}:30303
+- debug: msg={{enode.stdout}}@{{ansible_default_ipv4.address}}:30303
