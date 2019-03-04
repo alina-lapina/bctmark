@@ -1,0 +1,1 @@
+influxdb_node: "{{ groups['dashboard'][0] }}"

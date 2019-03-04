@@ -1,0 +1,51 @@
+---
+- name: Install pip
+  apt:
+    name: python-pip
+
+- name: Install docker-py package (needed to start docker image)
+  pip:
+    name: docker-py
+
+- name: Install influxdb package (needed to create database)
+  pip:
+    name: influxdb
+
+- name: Copy influxdb conf
+  copy:
+    src: influxdb.conf
+    dest: /tmp/influxdb.conf
+
+- name: Download collectd types.db
+  get_url:
+    url: "https://raw.githubusercontent.com/collectd/collectd/master/src/types.db"
+    dest: /tmp/types.db
+
+- name: start influxdb docker container
+  docker_container:
+    name: "influxdb"
+    image: "influxdb"
+    detach: True
+    network_mode: host
+    state: started
+    expose:
+      - "8090"
+      - "8099"
+    volumes:
+      - "/tmp/influxdb.conf:/etc/influxdb/influxdb.conf"
+      - "/tmp/influxdb-data:/var/lib/influxdb"
+      - "/tmp/types.db:/usr/share/collectd/types.db"
+
+- name: Waiting for the influx service to become available
+  wait_for:
+    host: "localhost"
+    port: 8086
+    state: started
+    delay: 2
+    timeout: 120
+
+- name: Create the influxdb database
+  influxdb_database:
+    hostname: "localhost"
+    database_name: "collectd"
+    state: present

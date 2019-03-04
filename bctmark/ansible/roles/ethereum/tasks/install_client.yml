@@ -67,17 +67,3 @@
 
 - name: enable parity service
   service: name=parity enabled=yes state=started
-
-- name: Retrieve Enode
-  shell: >
-    curl
-    --data '{"method":"parity_enode","params":[],"id":1,"jsonrpc":"2.0"}' 
-    -H "Content-Type:application/json" 
-    -X POST http://127.0.0.1:8545 | sed -n 's/.*\(enode.*\)@.*/\1/p'
-  register: enode
-  until: enode.stdout is match("enode://[a-zA-Z0-9]+")
-  retries: 10 
-  delay: 5
-  command_warning: false
-
-- debug: msg={{enode.stdout}}@{{ansible_default_ipv4.address}}:30303
