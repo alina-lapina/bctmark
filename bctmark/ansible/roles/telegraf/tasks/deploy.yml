@@ -1,0 +1,37 @@
+---
+- name: Install apt transport https
+  apt:
+    name: apt-transport-https
+    state: present
+
+- name: Add the Telegraf repo apt signing key
+  apt_key:
+    url: https://repos.influxdata.com/influxdb.key
+
+- name: Get linux distrib id
+  shell: lsb_release -si | tr '[:upper:]' '[:lower:]'
+  register: distrib_id
+
+- name: Get linux distrib codename
+  shell: lsb_release -sc | tr '[:upper:]' '[:lower:]'
+  register: distrib_codename
+
+- name: add Telegraf apt repository
+  apt_repository:
+    repo: deb http://repos.influxdata.com/{{ distrib_id.stdout }} {{ distrib_codename.stdout }} stable
+    state: present
+
+- name: Install Telegraf
+  apt:
+    name: telegraf
+    state: present
+
+- name: Configuring telegraf
+  template:
+    src: telegraf.conf.j2
+    dest: /etc/telegraf/telegraf.conf
+
+- name: Start service telegraf
+  service:
+    name: telegraf
+    state: restarted

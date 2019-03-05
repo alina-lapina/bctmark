@@ -17,18 +17,24 @@
     home: "{{ parity_home }}"
     state: present
 
+# to remove when fixed
+- set_fact: parity_installed={{ parity_version.stdout_lines[0] is defined }}
+
 - name: Download Parity installer
   get_url: 
     url: "{{ parity_installer_url }}"
     dest: /tmp/parity_installer.sh
+  when: not parity_installed
 
 - name: Make Parity installer executable
   file:
     dest: /tmp/parity_installer.sh
     mode: a+x
+  when: not parity_installed
 
 - name: Run Parity installer
   shell: /tmp/parity_installer.sh
+  when: not parity_installed
 
 - name: configuration file for parity bootnode
   template:

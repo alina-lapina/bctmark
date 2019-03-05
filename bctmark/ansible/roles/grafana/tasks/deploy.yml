@@ -30,4 +30,4 @@
     return_content: yes
     status_code: 200,409 # already added
   with_items:
-    - { name: influxdb-collectd, database: collectd, port: 8086, host: "{{ hostvars[influxdb_node]['ansible_default_ipv4']['address'] }}" }
+    - { name: influxdb-collectd, database: metrics, port: 8086, host: "{{ hostvars[influxdb_node]['ansible_default_ipv4']['address'] }}" }

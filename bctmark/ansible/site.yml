@@ -11,11 +11,11 @@
   roles:
     - role: ethereum
       is_bootnode: true
-    - collectd
+    - telegraf
 
 - name: Deploy Ethereum nodes
   hosts: peer
   roles:
     - role: ethereum
       is_bootnode: false
-    - collectd
+    - telegraf
