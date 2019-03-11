@@ -1,35 +1,52 @@
 ---
-- name: Install apt transport https
-  apt:
-    name: apt-transport-https
-    state: present
+## Can't use it until telegraf has hexa converter
+#- name: Install Telegraf
+#  apt:
+#    deb: https://dl.influxdata.com/telegraf/nightlies/telegraf_nightly_amd64.deb
 
-- name: Add the Telegraf repo apt signing key
-  apt_key:
-    url: https://repos.influxdata.com/influxdb.key
-
-- name: Get linux distrib id
-  shell: lsb_release -si | tr '[:upper:]' '[:lower:]'
-  register: distrib_id
-
-- name: Get linux distrib codename
-  shell: lsb_release -sc | tr '[:upper:]' '[:lower:]'
-  register: distrib_codename
-
-- name: add Telegraf apt repository
-  apt_repository:
-    repo: deb http://repos.influxdata.com/{{ distrib_id.stdout }} {{ distrib_codename.stdout }} stable
-    state: present
-
-- name: Install Telegraf
-  apt:
+- name: Create Telegraf group
+  group: 
     name: telegraf
+    system: yes 
     state: present
 
-- name: Configuring telegraf
+- name: Create Telegraf home directory
+  file:
+    dest: /tmp/home/telegraf
+    state: directory
+    mode: "0777"
+
+- name: Create Telegraf user
+  user: 
+    name: telegraf 
+    group: telegraf
+    home: /tmp/home/telegraf
+    state: present
+
+- name: Create Telegraf conf directory
+  file:
+    path: /etc/telegraf/telegraf.d/
+    state: directory
+    owner: telegraf
+
+- name: Install Telegraph
+  copy:
+    src: telegraf
+    dest: /usr/bin/telegraf
+    owner: telegraf
+    mode: u=rwx,g=rwx,o=rwx
+
+- name: Configuring Telegraf
   template:
     src: telegraf.conf.j2
     dest: /etc/telegraf/telegraf.conf
+    owner: telegraf
+
+- name: Create Telegraf service conf
+  copy:
+    src: telegraf.service
+    dest: /etc/systemd/system/telegraf.service
+    owner: telegraf
 
 - name: Start service telegraf
   service:
