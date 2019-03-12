@@ -1,12 +1,21 @@
 ---
+- name: Deploy InfluxDB/Graphana Dashboard
+  hosts: dashboard
+  roles:
+    - geerlingguy.docker
+    - influxdb
+    - grafana
+
 - name: Deploy Ethereum bootnodes
   hosts: bootnode
   roles:
     - role: ethereum
       is_bootnode: true
+    - collectd
 
 - name: Deploy Ethereum nodes
   hosts: peer
   roles:
     - role: ethereum
       is_bootnode: false
+    - collectd

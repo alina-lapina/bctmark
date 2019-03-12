@@ -1,8 +1,13 @@
+[parity]
+base_path = "{{parity_home}}/.local/share/io.parity.ethereum"
+db_path = "{{parity_home}}/.local/share/io.parity.ethereum/chains"
+keys_path = "{{parity_home}}/.local/share/io.parity.ethereum/keys"
+
 [network]
 id = 1234567899
-nat = "extip:{{ ansible_eth1.ipv4.address }}"
+nat = "extip:{{ ansible_default_ipv4.address }}"
 reserved_only = false
-reserved_peers = "/home/{{parity_user}}/list_bootnodes"
+reserved_peers = "{{parity_home}}/list_bootnodes"
 
 [websockets]
 disable = false
@@ -19,3 +24,12 @@ interface = "all"
 cors = ["all"]
 apis = ["web3", "eth", "pubsub", "net", "parity", "parity_pubsub", "traces", "rpc", "shh", "shh_pubsub"]
 hosts = ["all"]
+
+[ipc]
+path = "{{parity_home}}/.local/share/io.parity.ethereum/jsonrpc.ipc"
+
+[dapps]
+path = "{{parity_home}}/.local/share/io.parity.ethereum/dapps"
+
+[secretstore]
+path = "{{parity_home}}/.local/share/io.parity.ethereum/secretstore"

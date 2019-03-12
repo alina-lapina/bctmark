@@ -7,9 +7,8 @@ User={{parity_user}}
 Group={{parity_group}}
 
 Type=simple
-ExecStart=/usr/bin/parity --config /home/{{parity_user}}/config.toml
+ExecStart=/usr/bin/parity --config {{parity_home}}/config.toml
 Restart=always
-PrivateTmp=true
 TimeoutStopSec=120s
 TimeoutStartSec=20s
 RestartSec=15s

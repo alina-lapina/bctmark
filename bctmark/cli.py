@@ -5,7 +5,7 @@ import yaml
 import bctmark.tasks as t
 from bctmark.constants import CONF
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 
 
 @click.group()
