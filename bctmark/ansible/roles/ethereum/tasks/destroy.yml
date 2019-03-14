@@ -9,5 +9,5 @@
 - set_fact: parity_installed={{ parity_version.stdout_lines[0] is defined }}
 
 - name: Uninstall parity client
-  include: uninstall_client.yml
+  include: utils/uninstall_client.yml
   when: parity_installed

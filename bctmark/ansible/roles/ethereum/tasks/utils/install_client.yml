@@ -17,7 +17,6 @@
     home: "{{ parity_home }}"
     state: present
 
-# to remove when fixed
 - set_fact: parity_installed={{ parity_version.stdout_lines[0] is defined }}
 
 - name: Download Parity installer
@@ -33,7 +32,7 @@
   when: not parity_installed
 
 - name: Run Parity installer
-  shell: /tmp/parity_installer.sh
+  shell: /tmp/parity_installer.sh --release stable
   when: not parity_installed
 
 - name: configuration file for parity bootnode
@@ -51,6 +50,15 @@
     owner: "{{ parity_user }}"
     group: "{{ parity_group }}"
   when: not is_bootnode
+
+- name: Copy Chain config file
+  template:
+    src: chain.json.j2
+    dest: "{{ parity_home }}/chain.json"
+    owner: "{{ parity_user }}"
+    mode: u=rwx,g=rwx,o=rwx
+  vars:
+    add_accounts: false
 
 - name: list of bootnodes peers
   template:

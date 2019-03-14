@@ -7,7 +7,7 @@ User={{parity_user}}
 Group={{parity_group}}
 
 Type=simple
-ExecStart=/usr/bin/parity --config {{parity_home}}/config.toml
+ExecStart=/usr/bin/parity --config {{parity_home}}/config.toml --chain {{parity_home}}/chain.json --base-path {{parity_home}}/.local/share/io.parity.ethereum
 Restart=always
 TimeoutStopSec=120s
 TimeoutStartSec=20s

@@ -6,11 +6,11 @@
   changed_when: false
   check_mode: no
 
-# ISSUE : if already installed, conf files are in /TMP/ (so destroyed). Maybe put those in a /var/lib/parity ?
-# - set_fact: parity_installed={{ parity_version.stdout_lines[0] is defined }}
-
 - name: Install parity client
-  include: install_client.yml
+  include: utils/install_client.yml
+
+- name: Generate accounts
+  include: utils/generate_accounts.yml
 
 - name: Retrieve Enode
   shell: >
