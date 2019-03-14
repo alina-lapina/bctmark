@@ -1,0 +1,42 @@
+- name: Install python3
+  apt:
+    name: python3
+
+- name: Install pip
+  apt:
+    name: python3-pip
+
+- name: Install web3 python client
+  pip:
+    name: web3
+    executable: pip3
+
+- name: Copy account generation script
+  copy:
+    src: generate_accounts.py
+    dest: /tmp/generate_accounts.py
+
+- name: Generate accounts
+  shell: python3 /tmp/generate_accounts.py
+  register: account_addresses_list
+
+- name: Verify account addresses list
+  debug:
+    msg: "{{ account_addresses_list.stdout_lines }}"
+
+- name: Delete former chain spec file
+  file: 
+    path: "{{ parity_home }}/chain.json"
+    state: absent
+
+- name: Put new chain spec file
+  template:
+    src: chain.json.j2
+    dest: "{{ parity_home }}/chain.json"
+    owner: "{{ parity_user }}"
+    mode: u=rwx,g=rwx,o=rwx
+  vars:
+    add_accounts: true
+
+- name: Restart parity service
+  service: name=parity state=restarted

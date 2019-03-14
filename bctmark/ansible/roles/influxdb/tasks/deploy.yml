@@ -47,5 +47,5 @@
 - name: Create the influxdb database
   influxdb_database:
     hostname: "localhost"
-    database_name: "collectd"
+    database_name: "metrics"
     state: present

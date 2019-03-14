@@ -1,0 +1,54 @@
+---
+## Can't use it until telegraf has hexa converter
+#- name: Install Telegraf
+#  apt:
+#    deb: https://dl.influxdata.com/telegraf/nightlies/telegraf_nightly_amd64.deb
+
+- name: Create Telegraf group
+  group: 
+    name: telegraf
+    system: yes 
+    state: present
+
+- name: Create Telegraf home directory
+  file:
+    dest: /tmp/home/telegraf
+    state: directory
+    mode: "0777"
+
+- name: Create Telegraf user
+  user: 
+    name: telegraf 
+    group: telegraf
+    home: /tmp/home/telegraf
+    state: present
+
+- name: Create Telegraf conf directory
+  file:
+    path: /etc/telegraf/telegraf.d/
+    state: directory
+    owner: telegraf
+
+- name: Install Telegraph
+  copy:
+    src: telegraf
+    dest: /usr/bin/telegraf
+    owner: telegraf
+    mode: u=rwx,g=rwx,o=rwx
+
+- name: Configuring Telegraf
+  template:
+    src: telegraf.conf.j2
+    dest: /etc/telegraf/telegraf.conf
+    owner: telegraf
+
+- name: Create Telegraf service conf
+  copy:
+    src: telegraf.service
+    dest: /etc/systemd/system/telegraf.service
+    owner: telegraf
+
+- name: Start service telegraf
+  service:
+    name: telegraf
+    state: restarted
