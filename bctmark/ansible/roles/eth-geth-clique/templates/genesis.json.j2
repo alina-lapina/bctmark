@@ -1,0 +1,46 @@
+{# Create account list #}
+{% if add_accounts %}
+	{% set accounts = [] %}
+	{% for host in groups['bootnode-clique'] %}
+		{% for address in hostvars[host]['account_addresses_list']['stdout_lines'] %}
+			{% set accounts = accounts.append("\"" ~ address ~ "\":{ \"balance\": \"999999999999999999999999999999999999999999999999999999999999999999999999\" }") %}
+		{% endfor %}	
+	{% endfor %}
+	{% for host in groups['peer-clique'] %}
+		{% for address in hostvars[host]['account_addresses_list']['stdout_lines'] %}
+			{% set accounts = accounts.append("\"" ~ address ~ "\":{ \"balance\": \"999999999999999999999999999999999999999999999999999999999999999999999999\" }") %}
+		{% endfor %}	
+	{% endfor %}
+{% endif %}
+
+{
+  "config": {
+    "chainId": 99,
+    "homesteadBlock": 1,
+    "eip150Block": 2,
+    "eip150Hash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+    "eip155Block": 3,
+    "eip158Block": 3,
+    "byzantiumBlock": 4,
+    "constantinopleBlock": 5,
+    "clique": {
+      "period": 15,
+      "epoch": 30000
+    }
+  },
+  "nonce": "0x0",
+  "timestamp": "0x5ce10714",
+  "extraData": "0x00000000000000000000000000000000000000000000000000000000000000000{{hostvars[groups['bootnode-clique'][0]]['account_addresses_list']['stdout_lines'][0]}}000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+  "gasLimit": "0x47b760",
+  "difficulty": "0x1",
+  "mixHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+  "coinbase": "0x0000000000000000000000000000000000000000",
+  "alloc": {
+    {% if add_accounts %}
+		  {{ accounts | join(",") }}
+	  {% endif %}
+  },
+  "number": "0x0",
+  "gasUsed": "0x0",
+  "parentHash": "0x0000000000000000000000000000000000000000000000000000000000000000"
+}

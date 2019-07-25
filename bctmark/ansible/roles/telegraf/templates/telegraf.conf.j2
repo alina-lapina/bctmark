@@ -70,5 +70,5 @@
   integer = ["result"]
 
 [[outputs.influxdb]]
-  urls = ["http://{{ hostvars[groups['dashboard'][0]]['ansible_' + hostvars[groups['dashboard'][0]]['n1']]['ipv4']['address'] }}:8086"]
+  urls = ["http://{{ hostvars[groups['dashboard'][0]]['ansible_' + blockchain_network]['ipv4']['address'] }}:8086"]
   database = "metrics"

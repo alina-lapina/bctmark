@@ -1,0 +1,23 @@
+---
+- name: Delete former parity service file
+  file: 
+    path: /etc/systemd/system/parity.service
+    state: absent
+
+# change the path when time to refactor
+- name: Put new parity service file
+  template:
+    src: roles/ethereum/templates/parity.service.j2
+    dest: /etc/systemd/system/parity.service
+    owner: root
+    group: root
+    mode: 0644
+  vars:
+    - activate_mining: true
+    - account_address: "{{account_addresses_list.stdout_lines[0]}}"
+
+- name: reload systemd
+  command: systemctl daemon-reload
+
+- name: enable parity service
+  service: name=parity state=restarted

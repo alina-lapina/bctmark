@@ -1,0 +1,4 @@
+---
+geth_user: geth
+geth_group: geth
+geth_home: /tmp/home/geth
