@@ -1,0 +1,3 @@
+{% for host in groups['bootnode'] %}
+{{hostvars[host]['enode']['stdout']}}@{{hostvars[host]['ansible_' + blockchain_network]['ipv4']['address']}}:30303
+{% endfor %}

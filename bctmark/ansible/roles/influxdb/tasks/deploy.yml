@@ -44,8 +44,14 @@
     delay: 2
     timeout: 120
 
-- name: Create the influxdb database
+- name: Create the metrics database
   influxdb_database:
     hostname: "localhost"
     database_name: "metrics"
+    state: present
+
+- name: Create the geth database
+  influxdb_database:
+    hostname: "localhost"
+    database_name: "geth"
     state: present

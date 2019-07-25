@@ -1,0 +1,70 @@
+- name: Create Geth group
+  group: 
+    name: "{{ geth_group }}"
+    system: yes 
+    state: present
+
+- name: Create Geth home directory
+  file:
+    dest: "{{ geth_home }}"
+    state: directory
+    mode: "0777"
+
+- name: Create Geth user
+  user: 
+    name: "{{ geth_user }}" 
+    group: "{{ geth_group }}"
+    home: "{{ geth_home }}"
+    state: present
+
+- name: Download Geth 1.8.23
+  unarchive:
+    src: https://gethstore.blob.core.windows.net/builds/geth-alltools-linux-amd64-1.8.23-c9427004.tar.gz
+    dest: /tmp/
+    remote_src: yes
+
+- name: Install Geth command
+  command: cp /tmp/geth-alltools-linux-amd64-1.8.23-c9427004/geth /usr/bin/geth
+
+- name: Install Geth Bootnode utility command
+  command: cp /tmp/geth-alltools-linux-amd64-1.8.23-c9427004/bootnode /usr/bin/bootnode
+
+- name: configuration file for geth bootnode
+  template:
+    src: templates/config_bootnode.toml.j2
+    dest: "{{geth_home}}/config.toml"
+    owner: "{{ geth_user }}"
+    group: "{{ geth_group }}"
+  when: "'bootnode' in group_names"
+
+- name: configuration file for geth peer
+  template:
+    src: templates/config_peer.toml.j2
+    dest: "{{ geth_home }}/config.toml"
+    owner: "{{ geth_user }}"
+    group: "{{ geth_group }}"
+  when: "'bootnode' not in group_names"
+
+- name: configuration file for systemd geth service
+  template:
+    src: templates/geth.service.j2
+    dest: /etc/systemd/system/geth.service
+    owner: root
+    group: root
+    mode: 0644
+  vars:
+    - activate_mining: false
+
+- name: reload systemd
+  command: systemctl daemon-reload
+
+- name: enable geth service
+  service: name=geth enabled=yes state=started
+
+- name: Wait until the nodekey file is present before continuing
+  wait_for:
+    path: /tmp/home/geth/.ethereum/geth/nodekey
+
+- name: Retrieve Enode
+  shell: bootnode -writeaddress -nodekeyhex `sudo cat /tmp/home/geth/.ethereum/geth/nodekey`
+  register: enode_address

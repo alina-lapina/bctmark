@@ -11,9 +11,10 @@
     name: web3
     executable: pip3
 
+# change the path when time to refactor
 - name: Copy account generation script
   copy:
-    src: generate_accounts.py
+    src: roles/ethereum/files/generate_accounts.py
     dest: /tmp/generate_accounts.py
 
 - name: Generate accounts
@@ -26,14 +27,15 @@
 
 - name: Delete former chain spec file
   file: 
-    path: "{{ parity_home }}/chain.json"
+    path: /tmp/home/parity/chain.json
     state: absent
 
+# change the path when time to refactor
 - name: Put new chain spec file
   template:
-    src: chain.json.j2
-    dest: "{{ parity_home }}/chain.json"
-    owner: "{{ parity_user }}"
+    src: roles/ethereum/templates/chain.json.j2
+    dest: /tmp/home/parity/chain.json
+    owner: parity
     mode: u=rwx,g=rwx,o=rwx
   vars:
     add_accounts: true

@@ -1,7 +1,12 @@
 {# Create account list #}
 {% if add_accounts %}
 	{% set accounts = [] %}
-	{% for host in vars['play_hosts'] %}
+	{% for host in groups['bootnode'] %}
+		{% for address in hostvars[host]['account_addresses_list']['stdout_lines'] %}
+			{% set accounts = accounts.append("\"" ~ address ~ "\":{ \"balance\": \"999999\" }") %}
+		{% endfor %}	
+	{% endfor %}
+	{% for host in groups['peer'] %}
 		{% for address in hostvars[host]['account_addresses_list']['stdout_lines'] %}
 			{% set accounts = accounts.append("\"" ~ address ~ "\":{ \"balance\": \"999999\" }") %}
 		{% endfor %}	

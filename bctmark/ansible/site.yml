@@ -9,13 +9,43 @@
 - name: Deploy Ethereum bootnodes
   hosts: bootnode
   roles:
-    - role: ethereum
+    - role: eth-geth
       is_bootnode: true
     - telegraf
 
 - name: Deploy Ethereum nodes
   hosts: peer
   roles:
-    - role: ethereum
+    - role: eth-geth
       is_bootnode: false
     - telegraf
+
+- name: Deploy Ethereum Clique bootnodes
+  hosts: bootnode-clique
+  roles:
+    - role: eth-geth-clique
+      is_bootnode: true
+    - telegraf
+
+- name: Deploy Ethereum Clique nodes
+  hosts: peer-clique
+  roles:
+    - role: eth-geth-clique
+      is_bootnode: false
+    - telegraf
+
+- name: Create accounts and activate mining
+  hosts: 
+    - bootnode
+    - peer
+  tasks: 
+    - include: roles/eth-geth/tasks/utils/generate_accounts.yml
+    - include: roles/eth-geth/tasks/utils/activate_mining.yml
+
+- name: Create accounts and activate Clique mining
+  hosts: 
+    - bootnode-clique
+    - peer-clique
+  tasks: 
+    - include: roles/eth-geth-clique/tasks/utils/generate_accounts.yml
+    - include: roles/eth-geth-clique/tasks/utils/activate_mining.yml

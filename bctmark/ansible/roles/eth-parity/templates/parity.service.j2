@@ -1,0 +1,27 @@
+[Unit]
+Description=Ethereum Parity client
+After=network.target
+
+[Service]
+User=parity
+Group=parity
+
+Type=simple
+ExecStart=/usr/bin/parity \
+--config /tmp/home/parity/config.toml \
+--chain /tmp/home/parity/chain.json \
+{% if activate_mining %}
+--base-path /tmp/home/parity/.local/share/io.parity.ethereum \
+--author {{account_address}}
+{% else %}
+--base-path /tmp/home/parity/.local/share/io.parity.ethereum
+{% endif %}
+Restart=always
+TimeoutStopSec=120s
+TimeoutStartSec=20s
+RestartSec=15s
+StartLimitInterval=4h
+StartLimitBurst=500
+
+[Install]
+WantedBy=multi-user.target
