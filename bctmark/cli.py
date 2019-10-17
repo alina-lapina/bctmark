@@ -37,6 +37,7 @@ def g5k(force, conf, env):
     config = load_config(conf)
     t.g5k(config, force, env=env)
 
+
 @cli.command(help="Claim resources on vagrant (localhost).")
 @click.option("--force",
               is_flag=True,
@@ -49,6 +50,18 @@ def g5k(force, conf, env):
 def vagrant(force, conf, env):
     config = load_config(conf)
     t.vagrant(config, force, env=env)
+
+
+@cli.command(help="Emulate network constraints")
+@click.option("--conf",
+              default=CONF,
+              help="alternative configuration file")
+@click.option("--env",
+              help="alternative environment directory")
+def emulate(conf, env):
+    config = load_config(conf)
+    t.emulate(config, env=env)
+
 
 @cli.command(help="Generate the Ansible inventory [after g5k or vagrant].")
 @click.option("--env",
@@ -94,3 +107,20 @@ def deploy(provider, force, conf, env):
     t.PROVIDERS[provider](config, force, env=env)
     t.inventory()
     t.prepare(env=env)
+
+
+@cli.command(help="Run benchmark from bctmark_locust script")
+@click.argument("experiment_directory")
+@click.argument("main_file")
+@click.option("--env",
+              help="alternative environment directory")
+def benchmark(experiment_directory, main_file, env):
+    t.benchmark(experiment_directory, main_file, env=env)
+
+
+@cli.command(help="Replay transactions based on YAML file")
+@click.argument("transactions_file")
+@click.option("--env",
+              help="alternative environment directory")
+def replay(transactions_file, env):
+    t.replay(transactions_file, env=env)

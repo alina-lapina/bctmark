@@ -1,0 +1,30 @@
+---
+- name: Gather facts
+  hosts: all
+  tasks:
+    - name: Gather facts on all hosts
+      setup: {}
+
+- name: Deploy Ethereum bootnodes
+  hosts: bootnode
+  become: yes
+  roles:
+    - role: eth_geth
+      is_bootnode: true  
+      enos_action: deploy
+
+- name: Deploy Ethereum Peers
+  hosts: peer
+  become: yes
+  roles:
+    - role: eth_geth
+      is_bootnode: false
+      enos_action: deploy
+
+- name: Create accounts and activate mining
+  hosts: 
+    - bootnode
+    - peer
+  tasks: 
+    - include: roles/eth_geth/tasks/utils/generate_accounts.yml
+    - include: roles/eth_geth/tasks/utils/activate_mining.yml

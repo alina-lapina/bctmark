@@ -1,6 +1,0 @@
----
-- name: Destroying influxdb container
-  docker_container:
-    name: "influxdb"
-    state: absent
-    force_kill: yes

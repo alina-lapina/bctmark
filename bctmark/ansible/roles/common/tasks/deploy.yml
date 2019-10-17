@@ -1,3 +1,0 @@
-- name: Deploy tasks
-  debug:
-    msg: "Let's make BCTMark awesome !"

@@ -1,3 +1,0 @@
-- name: Destroy tasks
-  debug:
-    msg: "Let's destroy (probably before another run)"

@@ -1,0 +1,4 @@
+---
+- hosts: all
+  tasks:
+  - include: "roles/eth_geth_clique/tasks/utils/{{ playbook_to_include }}"
