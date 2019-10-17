@@ -1,0 +1,33 @@
+---
+# Deployment config
+deployment:
+  vagrant:
+    backend: virtualbox
+    box: generic/debian10
+    resources:
+      machines:
+        - roles: [dashboard]
+          flavour: tiny
+          number: 1
+        - roles: [bootnode, tc-1]
+          flavour: tiny
+          number: 1
+        - roles: [peer, tc-2]
+          flavour: tiny
+          number: 1
+        - roles: [bench_worker]
+          flavour: tiny
+          number: 1
+      networks:
+        - cidr: 172.16.42.0/16
+          roles: [blockchain_network]
+network-constraints:
+  enable: True
+  default_delay: "10ms"
+  default_rate: "10gbit"
+  groups: ["tc-1", "tc-2"]
+  #constraints:
+  # - src: "tc-1"
+  #   dst: "tc-2"
+  #   delay: "500ms"
+  #   symetric: True
