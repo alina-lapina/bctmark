@@ -17,6 +17,12 @@ class BCTMarkWorker(Service):
                 state="present",
                 update_cache=True,
             )
+            p.apt(
+                display_name="[Preinstall] Installing git",
+                name="git",
+                state="present",
+                update_cache=True,
+            )
             p.shell(
                 "update-alternatives --install /usr/bin/python python /usr/bin/python3 1",
                 display_name="Switching to python3 if needed"
