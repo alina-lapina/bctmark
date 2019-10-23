@@ -98,7 +98,7 @@ def prepare(**kwargs):
 
         m.deploy()
         m.create_database('geth')
-        ui_address = roles["dashboard"][0].extra["blockchain_network_ip"]
+        ui_address = roles["dashboard"][0].extra["%s_ip" % m.network]
 
         print("GRAFANA : The Grafana UI is available at http://%s:3000" % ui_address)
         print("GRAFANA : user=admin, password=admin")
