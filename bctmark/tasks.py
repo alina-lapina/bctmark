@@ -4,8 +4,8 @@ from enoslib.infra.enos_vagrant.configuration import Configuration as Vagrant_Co
 from enoslib.infra.enos_g5k.configuration import Configuration as G5K_Configuration
 from enoslib.infra.enos_g5k.provider import G5k
 from enoslib.infra.enos_vagrant.provider import Enos_vagrant
-from enoslib.service import Netem, Monitoring
-from .services import EthGethClique, BCTMark_Locust, ReplayManager, BCTMarkWorker
+from enoslib.service import Netem
+from .services import EthGethClique, BCTMark_Locust, ReplayManager, BCTMarkWorker, Monitoring
 from .utils import print_ex_time
 import logging
 import os
@@ -97,6 +97,7 @@ def prepare(**kwargs):
                                                'telegraf.conf.j2'))
 
         m.deploy()
+        m.create_database('geth')
         ui_address = roles["dashboard"][0].extra["blockchain_network_ip"]
 
         print("GRAFANA : The Grafana UI is available at http://%s:3000" % ui_address)

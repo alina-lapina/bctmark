@@ -4,3 +4,4 @@ from .bctmark_locust.bctmark_locust import BCTMark_Locust
 from .replay_manager.replay_manager import ReplayManager
 from .types.blockchain_service import BlockchainService, Address
 from .bctmark_worker.bctmark_worker import BCTMarkWorker
+from .monitoring.monitoring import Monitoring
