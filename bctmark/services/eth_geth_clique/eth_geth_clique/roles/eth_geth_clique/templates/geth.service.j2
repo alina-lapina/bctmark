@@ -9,8 +9,7 @@
 {% if 'dashboard' in groups %}
     {{ options.append("--metrics") }}
     {{ options.append("--metrics.influxdb") }}
-    {# hostvars[host]['ansible_eth1'] could be replaced by hostvars[host]['ansible_' + blockchain_network] to ajust to network name (but need to find an elegant way... #}
-    {{ options.append("--metrics.influxdb.endpoint \"http://" ~ hostvars[groups['dashboard'][0]]['ansible_eth1']['ipv4']['address'] ~ ":8086\"")}}
+    {{ options.append("--metrics.influxdb.endpoint \"http://" ~ hostvars[groups['dashboard'][0]]['ansible_' + ntw_monitoring]['ipv4']['address'] ~ ":8086\"")}}
     {{ options.append("--metrics.influxdb.username admin") }}
     {{ options.append("--metrics.influxdb.password admin") }}
     {{ options.append("--metrics.influxdb.tags \"host=" ~ inventory_hostname ~ "\"")}}

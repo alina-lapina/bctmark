@@ -92,7 +92,7 @@ def prepare(**kwargs):
         m = Monitoring(collector=roles["dashboard"],
                        ui=roles["dashboard"],
                        agent=roles["bootnode"] + roles["peer"],
-                       network='blockchain_network',
+                       network='ntw_monitoring',
                        agent_conf=os.path.join(os.path.abspath(os.path.dirname(os.path.realpath(__file__))), 'files',
                                                'telegraf.conf.j2'))
 
@@ -135,13 +135,13 @@ def benchmark(experiment_directory, main_file, env):
     networks = env["networks"]
 
     l = BCTMark_Locust(master=roles["dashboard"],
-               agents=roles["bench_worker"],
-               network="blockchain_network",
-               influxdb=roles['dashboard'])
+                       agents=roles["bench_worker"],
+                       network="ntw_monitoring",
+                       influxdb=roles['dashboard'])
 
     l.deploy()
     l.run_with_ui(experiment_directory, main_file, targeted_hosts=(roles["bootnode"] + roles["peer"]))
-    ui_address = roles["dashboard"][0].extra["blockchain_network_ip"]
+    ui_address = roles["dashboard"][0].extra["%s_ip" % l.network]
     print("LOCUST : The Locust UI is available at http://%s:8089" % ui_address)
 
 
@@ -160,6 +160,15 @@ def replay(transactions_file, env):
     b = BCTMarkWorker(roles["bench_worker"])
     r = ReplayManager(b, transactions_file, e)
     r.replay_transactions()
+
+
+@enostask()
+@print_ex_time
+def debug(var, env):
+    roles = env["roles"]
+    with play_on(pattern_hosts="all", roles=roles) as p:
+        p.debug(var=var)
+
 
 PROVIDERS = {
     "g5k": g5k,

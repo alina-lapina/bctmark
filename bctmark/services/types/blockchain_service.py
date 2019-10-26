@@ -1,3 +1,4 @@
+import re
 from abc import ABC, abstractmethod
 from enoslib.host import Host
 from typing import Dict, List, NewType
@@ -5,13 +6,31 @@ from typing import Dict, List, NewType
 Address = NewType('Address', str)
 
 
+def _declare_peering_network_role(peer: Host):
+    ntw_regex = re.compile(r'^ntw\d+$')
+    extras = list(peer.extra.keys())
+    for extra in extras:
+        if ntw_regex.match(extra) is not None:
+            peer.extra.update(peering_network=extra)
+            break
+    if 'peering_network' not in peer.extra:
+        if 'ntw_monitoring' in peer.extra:
+            peering_network = peer.extra['ntw_monitoring']
+        else:
+            peering_network = peer.extra['enos_devices']
+        peer.extra.update(peering_network=peering_network)
+    return peer
+
+
 class BlockchainService(ABC):
     @abstractmethod
     def __init__(self, bootnodes: List[Host], peers: List[Host], extra_vars=None, **kwargs):
-        self.bootnodes = bootnodes
-        self.peers = peers
+        self.bootnodes = list(map(_declare_peering_network_role, bootnodes))
+        self.peers = list(map(_declare_peering_network_role, peers))
+        print("#### BOOTNODES: %s" % self.bootnodes)
+        print("#### PEERS: %s" % self.peers)
         self.roles = {}
-        self.roles.update(bootnode=bootnodes, peer=peers)
+        self.roles.update(bootnode=self.bootnodes, peer=self.peers)
         if "dashboard" in kwargs:
             self.roles.update(dashboard=kwargs["dashboard"])
 

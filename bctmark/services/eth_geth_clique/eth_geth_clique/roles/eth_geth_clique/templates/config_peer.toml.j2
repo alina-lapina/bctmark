@@ -1,8 +1,8 @@
 {# Create bootnode peer list #}
 {% set bootnode_addresses = [] %}
 {% for host in groups['bootnode'] %}
-    {# hostvars[host]['ansible_eth1'] could be replaced by hostvars[host]['ansible_' + blockchain_network] to ajust to network name (but need to find an elegant way... #}
-    {% set bootnode_addresses = bootnode_addresses.append("\"enode://" ~ hostvars[host]['enode_address']['stdout'] ~ "@" ~ hostvars[host]['ansible_eth1']['ipv4']['address'] ~ ":30303\"") %}
+    {% set bootnode_peering_network =  hostvars[host]['peering_network'] %}
+    {% set bootnode_addresses = bootnode_addresses.append("\"enode://" ~ hostvars[host]['enode_address']['stdout'] ~ "@" ~ hostvars[host][peering_network + '_ip'] ~ ":30303\"") %}
 {% endfor %}
 
 [Eth]

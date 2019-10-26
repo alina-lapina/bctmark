@@ -124,3 +124,11 @@ def benchmark(experiment_directory, main_file, env):
               help="alternative environment directory")
 def replay(transactions_file, env):
     t.replay(transactions_file, env=env)
+
+
+@cli.command(help="Debug")
+@click.argument("var")
+@click.option("--env",
+              help="alternative environment directory")
+def debug(var, env):
+    t.debug(var, env=env)
