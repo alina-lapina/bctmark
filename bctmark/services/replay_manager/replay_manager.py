@@ -2,7 +2,7 @@ from bctmark.services.bctmark_worker.bctmark_worker import BCTMarkWorker
 from bctmark.services.types.blockchain_service import BlockchainService, Address
 from enoslib.api import play_on, run_ansible
 from enoslib.host import Host
-from typing import List, Dict
+from typing import List, Dict, AnyStr
 import os
 import errno
 import yaml
@@ -19,26 +19,8 @@ def _load_transactions_from_file(transactions_file):
 def _extract_account_addresses_from_transactions(transactions) -> List[Address]:
     accounts_from = set([t['from'] for t in transactions])
     accounts_to = set([t['to'] for t in transactions])
-    return list(accounts_from.union(accounts_to))
-
-
-def _send_transactions_to_worker(w: Host, trx: List):
-    filename = '/tmp/BCTMARK-WORKERS/trx-%s' % w.alias + w.address
-    if not os.path.exists(os.path.dirname(filename)):
-        try:
-            os.makedirs(os.path.dirname(filename))
-        except OSError as exc:
-            if exc.errno != errno.EEXIST:
-                raise
-    with open(filename, 'w') as f:
-        yaml.dump(trx, f)
-
-    with play_on(pattern_hosts="all", roles={'target': [w]}) as p:
-        p.copy(
-            display_name='Send transactions to worker %s' % w.alias,
-            src=filename,
-            dest='/tmp/transactions_to_replay.yml'
-        )
+    accounts_contracts = set([t['contractAddress'] for t in transactions if 'contractAddress' in t])
+    return list(accounts_from.union(accounts_to.union(accounts_contracts)))
 
 
 class ReplayManager:
@@ -72,10 +54,10 @@ class ReplayManager:
     def _dispatch_transactions(self):
         trx_for_workers = self._split_transactions_between_workers()
         for w, trx in trx_for_workers.items():
-            _send_transactions_to_worker(w, trx)
+            self._send_transactions_to_worker(w, trx)
         pass
 
-    def _split_transactions_between_workers(self) -> Dict[Host, List]:
+    def _split_transactions_between_workers(self) -> Dict[AnyStr, List]:
         # TODO dispatch by address can be a bit naive ?
         nb_workers = len(self.bctmark_worker.workers)
         addresses = self._get_existing_addresses()
@@ -84,7 +66,7 @@ class ReplayManager:
         for i in range(nb_workers):
             index_min = i * nb_accounts_by_worker
             index_max = (i + 1) * nb_accounts_by_worker
-            trx_by_worker[self.bctmark_worker.workers[i]] = self._get_trx_for_accounts(addresses[index_min:index_max])
+            trx_by_worker[self.bctmark_worker.workers[i].alias] = self._get_trx_for_accounts(addresses[index_min:index_max])
         return trx_by_worker
 
     def _gather_private_keys_to(self, hosts: List[Host]):
@@ -119,7 +101,35 @@ class ReplayManager:
     def _replace_addresses(self, mapping_addresses: Dict[Address, Address]):
         for t in self.transactions:
             t['from'] = mapping_addresses[t['from']]
-            t['to'] = mapping_addresses[t['to']]
+            if t['to'] is None:
+                t['contractAddress'] = mapping_addresses[t['contractAddress']]
+            else:
+                t['to'] = mapping_addresses[t['to']]
 
     def _get_trx_for_accounts(self, addresses: List[Address]) -> List:
         return list(filter(lambda x: x['from'] in addresses or x['to'] in addresses, self.transactions))
+
+    def _get_worker_for_alias(self, alias: AnyStr) -> Host:
+        for w in self.bctmark_worker.workers:
+            if w.alias is alias:
+                return w
+        raise Exception('No hosts found for alias %s' % alias)
+
+    def _send_transactions_to_worker(self, w: AnyStr, trx: List):
+        worker = self._get_worker_for_alias(w)
+        filename = '/tmp/BCTMARK-WORKERS/trx-%s' % worker.alias + worker.address
+        if not os.path.exists(os.path.dirname(filename)):
+            try:
+                os.makedirs(os.path.dirname(filename))
+            except OSError as exc:
+                if exc.errno != errno.EEXIST:
+                    raise
+        with open(filename, 'w') as f:
+            yaml.dump(trx, f)
+
+        with play_on(pattern_hosts="all", roles={'target': [worker]}) as p:
+            p.copy(
+                display_name='Send transactions to worker %s' % worker.alias,
+                src=filename,
+                dest='/tmp/transactions_to_replay.yml'
+            )

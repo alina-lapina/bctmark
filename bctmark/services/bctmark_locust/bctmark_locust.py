@@ -6,6 +6,7 @@ CURRENT_PATH = os.path.abspath(os.path.dirname(os.path.realpath(__file__)))
 
 
 class BCTMark_Locust(Locust):
+
     def __init__(self, master={}, agents={}, network=None, influxdb=None, **kwargs):
         Locust.__init__(self, master, agents, network, **kwargs)
         self.influxdb = influxdb
@@ -31,6 +32,10 @@ class BCTMark_Locust(Locust):
     def run_headless(self, expe_dir, file_name, nb_clients, hatch_rate, time, targeted_hosts=None):
         self.__write_targeted_hosts_file(targeted_hosts if targeted_hosts else self.roles)
         super().run_headless(expe_dir, file_name, nb_clients, hatch_rate, time)
+
+    def backup(self):
+        super()
+        pass
 
     def __generate_hosts_list(self, roles):
         hosts = []

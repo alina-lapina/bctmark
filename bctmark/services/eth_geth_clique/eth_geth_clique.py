@@ -18,6 +18,9 @@ class EthGethClique(Service, BlockchainService):
         run_ansible([_playbook], roles=self.roles, extra_vars=self.extra_vars)
         with play_on(pattern_hosts="all", roles=self.roles) as p:
             p.pip(display_name="Installing Web3", name="web3")
+            p.apt(display_name="Installing snap package manager", name="snapd")
+            p.shell("snap install solc")
+
 
     def destroy(self):
         super()
