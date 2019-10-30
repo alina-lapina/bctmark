@@ -4,6 +4,11 @@
     system: yes 
     state: present
 
+- name: Destroy Geth home directory if exists
+  file:
+    dest: "{{ geth_home }}"
+    state: absent
+
 - name: Create Geth home directory
   file:
     dest: "{{ geth_home }}"
@@ -16,6 +21,9 @@
     group: "{{ geth_group }}"
     home: "{{ geth_home }}"
     state: present
+
+- name: kill running geth process if needed
+  shell: "pkill geth || true"
 
 - name: Download Geth 1.8.23
   unarchive:
@@ -60,9 +68,6 @@
 
 - name: enable geth service
   service: name=geth enabled=yes state=started
-
-- debug:
-    var: groups
 
 - name: Wait until the nodekey file is present before continuing
   wait_for:

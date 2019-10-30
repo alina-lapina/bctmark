@@ -1,8 +1,8 @@
 {# Create bootnode peer list #}
 {% set bootnode_addresses = [] %}
 {% for host in groups['bootnode'] %}
-    {% set bootnode_peering_network =  hostvars[host]['peering_network'] %}
-    {% set bootnode_addresses = bootnode_addresses.append("\"enode://" ~ hostvars[host]['enode_address']['stdout'] ~ "@" ~ hostvars[host][peering_network + '_ip'] ~ ":30303\"") %}
+    {% set bootnode_peering_network =  hostvars[host][hostvars[host]['peering_network']] %}
+    {% set bootnode_addresses = bootnode_addresses.append("\"enode://" ~ hostvars[host]['enode_address']['stdout'] ~ "@" ~ hostvars[host]['ansible_' + bootnode_peering_network]['ipv4']['address'] ~ ":30303\"") %}
 {% endfor %}
 
 [Eth]

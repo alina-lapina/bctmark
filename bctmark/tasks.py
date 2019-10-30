@@ -19,6 +19,7 @@ logger = logging.getLogger(__name__)
 def g5k(config, force, env=None, **kwargs):
     provider = G5k(G5K_Configuration.from_dictionnary(config["deployment"]["g5k"]))
     roles, networks = provider.init(force_deploy=force)
+    discover_networks(roles, networks)
     env["config"] = config
     env["roles"] = roles
     env["networks"] = networks

@@ -21,7 +21,6 @@ class EthGethClique(Service, BlockchainService):
             p.apt(display_name="Installing snap package manager", name="snapd")
             p.shell("snap install solc")
 
-
     def destroy(self):
         super()
         pass
