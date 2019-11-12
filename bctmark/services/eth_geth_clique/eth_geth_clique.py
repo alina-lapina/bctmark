@@ -33,12 +33,15 @@ class EthGethClique(Service, BlockchainService):
         if not (host in self.bootnodes or host in self.peers):
             raise Exception("Host %s is neither in bootnodes or peers" % host.address)
         rq_res = run_command(
-            "repeat %s " % n + \
-            "geth --exec \"personal.newAccount(\'%s\')\" --verbosity 0 attach http://localhost:8545" % password,
+            "for i in {1..%s};" % n + \
+            "do geth --exec \"personal.newAccount(\'%s\')\" --verbosity 0 attach http://localhost:8545;" % password + \
+            "done;",
             pattern_hosts=host.alias,
             roles=self.roles
         )
+        print("###### RESULT")
         print(rq_res['ok'])
+        return rq_res['ok']
 
     def get_accounts(self) -> Dict[str, List[Address]]:
         accounts = {}
