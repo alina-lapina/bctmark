@@ -1,0 +1,40 @@
+---
+- hosts: all
+  tasks:
+    - name: Verify python installed version
+      shell: 'python3 --version | sed -n "s/.*3\.\([0-9]\).*/\1/p"'
+      register: python_minor_version
+    - block:
+        - name: Install build packages
+          apt:
+            state: present
+            name:
+              - build-essential
+              - tk-dev
+              - libncurses5-dev
+              - libncursesw5-dev
+              - libreadline6-dev
+              - libdb5.3-dev
+              - libgdbm-dev
+              - libsqlite3-dev
+              - libssl-dev
+              - libbz2-dev
+              - libexpat1-dev
+              - liblzma-dev
+              - zlib1g-dev
+              - libffi-dev
+              - uuid-dev
+        - name: Download Python 3.7
+          unarchive:
+            remote_src: yes
+            src: "https://www.python.org/ftp/python/3.7.0/Python-3.7.0.tgz"
+            dest: /tmp/
+        - name: Configure Python
+          shell: "./configure"
+          args:
+            chdir: /tmp/Python-3.7.0
+        - name: install python
+          shell: "make install"
+          args:
+            chdir: /tmp/Python-3.7.0
+      when: python_minor_version.stdout | int < 6

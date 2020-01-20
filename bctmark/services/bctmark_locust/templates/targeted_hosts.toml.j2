@@ -4,4 +4,7 @@ urls = [ {{ vars['influxdb_addresses'] | map('to_json') | join(",") }} ]
 {% endif %}
 
 [targets]
-urls = [ {{ vars['target_addresses'] | map('to_json') | join(",") }} ]
+{% for role in vars['target_roles'] %}
+[targets.{{role}}]
+urls = [ {{ vars['target_addresses'][role] | map('to_json') | join(",") }} ]
+{% endfor %}

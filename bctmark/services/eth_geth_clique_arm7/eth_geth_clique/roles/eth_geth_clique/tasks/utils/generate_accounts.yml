@@ -1,0 +1,15 @@
+- name: Copy the account password file
+  copy:
+    src: roles/eth_geth_clique/files/account_password.txt
+    dest: /tmp/account_password.txt
+
+- name: Generate accounts
+  shell: >
+    for i in `seq 5`;
+    do geth --datadir /tmp/home/geth/.ethereum/ -verbosity 0 account new --password /tmp/account_password.txt;
+    done;
+  become: yes
+  become_user: geth
+
+- name: Make accounts defaults
+  include: make_accounts_default.yml

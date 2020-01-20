@@ -27,48 +27,6 @@
 [[inputs.system]]
 [[inputs.net]]
   interfaces = []
-[[inputs.http]]
-  name_override = "parity_net_peerCount"
-  urls = [
-    "http://localhost:8545"
-  ]
-  method = "POST"
-  body = '{"method":"net_peerCount","params":[],"id":1,"jsonrpc":"2.0"}'
-  content_encoding = "identity"
-  data_format = "json"
-  json_string_fields = ["result"]
-  # Ugly AF but otherwise it doesn't work (duplicated 'header' table error)
-  [inputs.http.headers]
-    Content-Type = "application/json"
-[[inputs.http]]
-  name_override = "parity_eth_blockNumber"
-  urls = [
-    "http://localhost:8545"
-  ]
-  method = "POST"
-  body = '{"method":"eth_blockNumber","params":[],"id":1,"jsonrpc":"2.0"}'
-  content_encoding = "identity"
-  data_format = "json"
-  json_string_fields = ["result"]
-  [inputs.http.headers]
-    Content-Type = "application/json"
-[[inputs.http]]
-  name_override = "parity_eth_hashrate"
-  urls = [
-    "http://localhost:8545"
-  ]
-  method = "POST"
-  body = '{"method":"eth_hashrate","params":[],"id":1,"jsonrpc":"2.0"}'
-  content_encoding = "identity"
-  data_format = "json"
-  json_string_fields = ["result"]
-  [inputs.http.headers]
-    Content-Type = "application/json"
-
-[[processors.converter]]
-  [processors.converter.fields]
-  integer = ["result"]
-
 [[outputs.influxdb]]
   urls = ["http://{{ collector_address }}:8086"]
   database = "metrics"

@@ -4,4 +4,5 @@
 recursive-include bctmark/ansible *
 recursive-include bctmark/services *
 recursive-include bctmark/files *
+recursive-include bctmark/playbooks *
 include LICENSE.txt

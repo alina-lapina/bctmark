@@ -17,7 +17,7 @@ def _declare_peering_network_role(peer: Host):
         if 'ntw_monitoring' in peer.extra:
             peering_network = peer.extra['ntw_monitoring']
         else:
-            peering_network = peer.extra['enos_devices']
+            peering_network = peer.address
         peer.extra.update(peering_network=peering_network)
     return peer
 
@@ -27,8 +27,6 @@ class BlockchainService(ABC):
     def __init__(self, bootnodes: List[Host], peers: List[Host], extra_vars=None, **kwargs):
         self.bootnodes = list(map(_declare_peering_network_role, bootnodes))
         self.peers = list(map(_declare_peering_network_role, peers))
-        print("#### BOOTNODES: %s" % self.bootnodes)
-        print("#### PEERS: %s" % self.peers)
         self.roles = {}
         self.roles.update(bootnode=self.bootnodes, peer=self.peers)
         if "dashboard" in kwargs:

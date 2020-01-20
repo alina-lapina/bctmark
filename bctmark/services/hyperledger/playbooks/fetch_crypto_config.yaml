@@ -1,0 +1,26 @@
+---
+-   hosts: all
+    tasks:
+    -   name: List all files
+        shell: cd /tmp/crypto-config; find . -type f
+        register: files_to_copy
+
+    -   fetch:
+          src: /tmp/crypto-config/{{ item }}
+          dest: /tmp/crypto-config/
+        with_items: "{{ files_to_copy.stdout_lines }}"
+
+    - fetch:
+        src: /tmp/peerchannel.tx
+        dest: /tmp/peerchannel.tx
+        flat: yes
+
+    - fetch:
+        src: /tmp/anchorPeersUpdate.tx
+        dest: /tmp/anchorPeersUpdate.tx
+        flat: yes
+
+    - fetch:
+        src: /tmp/genesis.block
+        dest: /tmp/genesis.block
+        flat: yes

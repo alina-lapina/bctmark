@@ -1,0 +1,20 @@
+OrdererOrgs:
+  - Name: OrdererOrg
+    Domain: ordererorg.example.com
+    Specs:
+{% for host in groups['orderer'] %}
+      - Hostname: {{hostvars[host]['ntw_monitoring_ip']}}
+        CommonName: {{hostvars[host]['ntw_monitoring_ip']}}
+{% endfor %}
+
+PeerOrgs:
+  - Name: PeerOrg
+    Domain: peerorg.example.com
+    EnableNodeOUs: true
+    Specs:
+{% for host in groups['peer'] %}
+      - Hostname: {{hostvars[host]['ntw_monitoring_ip']}}
+        CommonName: {{hostvars[host]['ntw_monitoring_ip']}}
+{% endfor %}
+    Users:
+      Count: 1

@@ -1,0 +1,24 @@
+---
+-   hosts: all
+    tasks:
+    -   name: Check if Hyperledger binaries are already installed
+        shell: which cryptogen
+        register: hyperledger_bin_installed
+        ignore_errors: yes
+
+    -   name: Creates directory
+        file:
+            path: /tmp/hyperledger
+            state: directory
+        when: hyperledger_bin_installed.rc != 0
+
+    -   name: Download Hyperledger binaries
+        unarchive:
+            src: https://github.com/hyperledger/fabric/releases/download/v1.4.4/hyperledger-fabric-linux-amd64-1.4.4.tar.gz
+            dest: /tmp/hyperledger
+            remote_src: yes
+        when: hyperledger_bin_installed.rc != 0
+
+    -   name: Copy Hyperledger binaries to /bin
+        shell: cp /tmp/hyperledger/bin/* /bin/
+        when: hyperledger_bin_installed.rc != 0

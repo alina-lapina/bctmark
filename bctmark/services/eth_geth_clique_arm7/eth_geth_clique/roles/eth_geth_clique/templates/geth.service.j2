@@ -1,0 +1,37 @@
+{% set options = ["--config /tmp/home/geth/config.toml"] %}
+{% if activate_mining %}
+    {{ options.append("--mine") }}
+    {{ options.append("--miner.threads 10") }}
+    {{ options.append("--miner.etherbase " ~ account_address) }}
+    {{ options.append("--unlock " ~ account_address) }}
+    {{ options.append("--password /tmp/account_password.txt") }}
+{% endif %}
+{% if 'dashboard' in groups %}
+    {% set dashboard_ntw_monitoring =  hostvars[groups['dashboard'][0]]['ntw_monitoring'] %}
+    {{ options.append("--metrics") }}
+    {{ options.append("--metrics.influxdb") }}
+    {{ options.append("--metrics.influxdb.endpoint \"http://" ~ hostvars[groups['dashboard'][0]]['ansible_' + dashboard_ntw_monitoring]['ipv4']['address'] ~ ":8086\"")}}
+    {{ options.append("--metrics.influxdb.username admin") }}
+    {{ options.append("--metrics.influxdb.password admin") }}
+    {{ options.append("--metrics.influxdb.tags \"host=" ~ inventory_hostname ~ "\"")}}
+{% endif %}
+
+[Unit]
+Description=Ethereum Geth client
+After=network.target
+
+[Service]
+User=geth
+Group=geth
+
+Type=simple
+ExecStart=/usr/bin/geth {{ options | join(" ") }}
+Restart=always
+TimeoutStopSec=120s
+TimeoutStartSec=20s
+RestartSec=15s
+StartLimitInterval=4h
+StartLimitBurst=500
+
+[Install]
+WantedBy=multi-user.target

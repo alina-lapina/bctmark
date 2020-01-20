@@ -2,16 +2,20 @@ from enoslib.api import play_on, generate_inventory, run_ansible, discover_netwo
 from enoslib.task import enostask
 from enoslib.infra.enos_vagrant.configuration import Configuration as Vagrant_Configuration
 from enoslib.infra.enos_g5k.configuration import Configuration as G5K_Configuration
+from enoslib.infra.enos_static.configuration import Configuration as Static_Configuration
 from enoslib.infra.enos_g5k.provider import G5k
 from enoslib.infra.enos_vagrant.provider import Enos_vagrant
-from enoslib.service import Netem
-from .services import EthGethClique, BCTMark_Locust, ReplayManager, BCTMarkWorker, Monitoring
+from enoslib.infra.enos_static.provider import Static
+from enoslib.service import Netem, Locust
+
+from .services import Hyperledger, EthGethClique, EthGethCliqueArm7, BCTMarkLocust, ReplayManager, BCTMarkWorker, Monitoring
 from .utils import print_ex_time
 import logging
 import os
 from bctmark.constants import ANSIBLE_DIR
 
 logger = logging.getLogger(__name__)
+CURRENT_PATH = os.path.abspath(os.path.dirname(os.path.realpath(__file__)))
 
 
 @enostask(new=True)
@@ -19,7 +23,7 @@ logger = logging.getLogger(__name__)
 def g5k(config, force, env=None, **kwargs):
     provider = G5k(G5K_Configuration.from_dictionnary(config["deployment"]["g5k"]))
     roles, networks = provider.init(force_deploy=force)
-    discover_networks(roles, networks)
+    roles = discover_networks(roles, networks)
     env["config"] = config
     env["roles"] = roles
     env["networks"] = networks
@@ -30,11 +34,20 @@ def g5k(config, force, env=None, **kwargs):
 def vagrant(config, force, env=None, **kwargs):
     provider = Enos_vagrant(Vagrant_Configuration.from_dictionnary(config["deployment"]["vagrant"]))
     roles, networks = provider.init(force_deploy=force)
-    discover_networks(roles, networks)
+    roles = discover_networks(roles, networks)
     env["config"] = config
     env["roles"] = roles
     env["networks"] = networks
 
+@enostask(new=True)
+@print_ex_time
+def static(config, force, env=None, **kwargs):
+    provider = Static(Static_Configuration.from_dictionnary(config["deployment"]["static"]))
+    roles, networks = provider.init(force_deploy=force)
+    roles = discover_networks(roles, networks)
+    env["config"] = config
+    env["roles"] = roles
+    env["networks"] = networks
 
 @enostask()
 @print_ex_time
@@ -62,40 +75,52 @@ def inventory(**kwargs):
 def prepare(**kwargs):
     env = kwargs["env"]
     roles = env["roles"]
-    networks = env["networks"]
 
-    if "bench_worker" in roles:
-        peers = roles["peer"] + roles["bench_worker"]
-        b = BCTMarkWorker(roles["bench_worker"])
-        b.deploy()
-    else:
-        peers = roles["peer"]
-
-    # Switch everyone to python3...
+    # Install python 3.7 on every hosts
     with play_on(pattern_hosts="all", roles=roles) as p:
-        p.apt(
-            display_name="[Preinstall] Installing python3-pip",
-            name=["python3", "python-pip", "python3-pip"],
-            state="present",
-            update_cache=True,
-        )
-        p.shell(
-            "update-alternatives --install /usr/bin/python python /usr/bin/python3 1",
-            display_name="Switching to python3"
-        )
-    if "dashboard" in roles:
-        e = EthGethClique(bootnodes=roles["bootnode"], peers=peers, dashboard=roles["dashboard"])
-    else:
-        e = EthGethClique(bootnodes=roles["bootnode"], peers=peers)
-    e.deploy()
+        p.shell("""
+            ((python3 --version) && (pip3 --version)) || (
+                apt update && apt install -y python3 python3-pip)
+            """)
+
+    _playbook = os.path.join(CURRENT_PATH, "playbooks", "install_python3.7.yaml")
+    run_ansible([_playbook], roles=roles)
 
     if "dashboard" in roles:
+        telegraf_conf = ""
+        telegraf_agents = []
+        if any("ethgethcliquearm7" in r for r in roles):
+            s = EthGethClique(
+                bootnodes=roles["ethgethcliquearm7_bootnode"],
+                peers=roles["ethgethcliquearm7_peer"],
+                dashboard=roles["dashboard"]
+            )
+            telegraf_conf = os.path.join(CURRENT_PATH, 'services', 'eth_geth_clique_arm7', 'eth_geth_clique', 'roles',
+                                         'eth_geth_clique', 'templates', 'telegraf.conf.j2')
+            telegraf_agents = roles["ethgethcliquearm7_bootnode"] + roles["ethgethcliquearm7_peer"]
+        elif any("ethgethclique" in r for r in roles):
+            s = EthGethClique(
+                bootnodes=roles["ethgethclique_bootnode"],
+                peers=roles["ethgethclique_peer"],
+                dashboard=roles["dashboard"]
+            )
+            telegraf_conf = os.path.join(CURRENT_PATH, 'services', 'eth_geth_clique', 'eth_geth_clique', 'roles',
+                                         'eth_geth_clique', 'templates', 'telegraf.conf.j2')
+            telegraf_agents = roles["ethgethclique_bootnode"] + roles["ethgethclique_peer"]
+        elif any("hyperledger" in r for r in roles):
+            s = Hyperledger(
+                orderers=roles["hyperledger_orderer"],
+                peers=roles["hyperledger_peer"]
+            )
+            telegraf_conf = os.path.join(CURRENT_PATH, 'services', 'hyperledger',
+                                         'templates', 'telegraf.conf.j2')
+            telegraf_agents = roles["hyperledger_orderer"] + roles["hyperledger_peer"]
+
         m = Monitoring(collector=roles["dashboard"],
                        ui=roles["dashboard"],
-                       agent=roles["bootnode"] + roles["peer"],
+                       agent=telegraf_agents,
                        network='ntw_monitoring',
-                       agent_conf=os.path.join(os.path.abspath(os.path.dirname(os.path.realpath(__file__))), 'files',
-                                               'telegraf.conf.j2'))
+                       agent_conf=telegraf_conf)
 
         m.deploy()
         m.create_database('geth')
@@ -104,7 +129,29 @@ def prepare(**kwargs):
         print("GRAFANA : The Grafana UI is available at http://%s:3000" % ui_address)
         print("GRAFANA : user=admin, password=admin")
     else:
+        if any("ethgethcliquearm7" in r for r in roles):
+            s = EthGethClique(
+                bootnodes=roles["ethgethcliquearm7_bootnode"],
+                peers=roles["ethgethcliquearm7_peer"]
+            )
+        elif any("ethgethclique" in r for r in roles):
+            s = EthGethClique(
+                bootnodes=roles["ethgethclique_bootnode"],
+                peers=roles["ethgethclique_peer"]
+            )
+        elif any("hyperledger" in r for r in roles):
+            s = Hyperledger(
+                orderers=roles["hyperledger_orderer"],
+                peers=roles["hyperledger_peer"]
+            )
         print("No monitoring activated")
+
+    if "bench_worker" in roles:
+        s.peers += roles["bench_worker"]
+        b = BCTMarkWorker(roles["bench_worker"])
+        b.deploy()
+
+    s.deploy()
 
 
 @enostask()
@@ -133,16 +180,19 @@ def destroy(**kwargs):
 @print_ex_time
 def benchmark(experiment_directory, main_file, env):
     roles = env["roles"]
-    networks = env["networks"]
 
-    l = BCTMark_Locust(master=roles["dashboard"],
-                       agents=roles["bench_worker"],
-                       network="ntw_monitoring",
-                       influxdb=roles['dashboard'])
+    locust = Locust(master=roles["dashboard"],
+                    agents=roles["bench_worker"],
+                    network="ntw_monitoring")
+    locust.deploy()
 
-    l.deploy()
-    l.run_with_ui(experiment_directory, main_file, targeted_hosts=(roles["bootnode"] + roles["peer"]))
-    ui_address = roles["dashboard"][0].extra["%s_ip" % l.network]
+    target_lists = {r: ';'.join(map(lambda x: x.extra["ntw_monitoring_ip"], l)) for r, l in roles.items()}
+    print(target_lists)
+    locust.run_with_ui(
+        expe_dir=experiment_directory,
+        locustfile=main_file,
+        environment=target_lists)
+    ui_address = roles["dashboard"][0].extra["ntw_monitoring_ip"]
     print("LOCUST : The Locust UI is available at http://%s:8089" % ui_address)
 
 
@@ -174,6 +224,6 @@ def debug(var, env):
 PROVIDERS = {
     "g5k": g5k,
     "vagrant": vagrant,
-    #    "static": static
+    "static": static,
     #    "chameleon": chameleon
 }

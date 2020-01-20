@@ -1,0 +1,17 @@
+---
+- name: Put new geth service file
+  template:
+    src: roles/eth_geth_clique/templates/geth.service.j2
+    dest: /etc/systemd/system/geth.service
+    owner: root
+    group: root
+    mode: 0644
+  vars:
+    - activate_mining: true
+    - account_address: "{{account_addresses_list.stdout_lines[0]}}"
+
+- name: reload systemd
+  command: systemctl daemon-reload
+
+- name: enable geth service
+  service: name=geth state=restarted

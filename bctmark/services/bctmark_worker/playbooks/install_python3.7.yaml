@@ -1,0 +1,41 @@
+---
+- hosts: all
+  tasks:
+    - name: Install build packages
+      apt:
+        state: present
+        name:
+          - build-essential
+          - tk-dev
+          - libncurses5-dev
+          - libncursesw5-dev
+          - libreadline6-dev
+          - libdb5.3-dev
+          - libgdbm-dev
+          - libsqlite3-dev
+          - libssl-dev
+          - libbz2-dev
+          - libexpat1-dev
+          - liblzma-dev
+          - zlib1g-dev
+          - libffi-dev
+          - uuid-dev
+    - name: Download Python 3.7
+      unarchive:
+        remote_src: yes
+        src: "https://www.python.org/ftp/python/3.7.0/Python-3.7.0.tgz"
+        dest: /tmp/
+    - name: Configure Python
+      shell: "./configure"
+      args:
+        chdir: /tmp/Python-3.7.0
+    - name: make python
+      shell: "make -j -l 4"
+      args:
+        chdir: /tmp/Python-3.7.0
+    - name: install python
+      shell: "make altinstall"
+      args:
+        chdir: /tmp/Python-3.7.0
+    - name: Setup .bashrc
+      shell: "update-alternatives --install /usr/bin/python python /usr/local/bin/python3.7 1"

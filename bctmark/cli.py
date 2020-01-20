@@ -52,6 +52,20 @@ def vagrant(force, conf, env):
     t.vagrant(config, force, env=env)
 
 
+@cli.command(help="Claim resources on a static provider.")
+@click.option("--force",
+              is_flag=True,
+              help="force redeployment")
+@click.option("--conf",
+              default=CONF,
+              help="alternative configuration file")
+@click.option("--env",
+              help="alternative environment directory")
+def static(force, conf, env):
+    config = load_config(conf)
+    t.static(config, force, env=env)
+
+
 @cli.command(help="Emulate network constraints")
 @click.option("--conf",
               default=CONF,
