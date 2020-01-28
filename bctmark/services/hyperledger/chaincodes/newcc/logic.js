@@ -52,6 +52,16 @@ class testContract extends Contract {
        return res;
     }
 
+    async queryFactorial(ctx) {
+        let resultAsBytes = await ctx.stub.getState("FACTORIAL");
+        if (!resultAsBytes || resultAsBytes.toString().length <= 0) {
+            throw new Error('No value set for FACTORIAL (maybe you forgot to call factorialOf(number)?)');
+        }
+        let result=JSON.parse(resultAsBytes.toString());
+
+        return JSON.stringify(result);
+    }
+
 }
 
 module.exports=testContract;

@@ -213,28 +213,6 @@ class Hyperledger(Service):
                 display_name="Generate peerchannel.block",
                 environment=adminenv
             )
-            # p.shell(
-            #     (
-            #         "peer channel join "
-            #         "-b /tmp/peerchannel.block "
-            #         "> /tmp/peer_channel_join.out 2>&1"
-            #     ),
-            #     display_name="Join channel",
-            #     environment=adminenv
-            # )
-            # p.shell(
-            #     (
-            #         "peer channel update "
-            #         "-o {{hostvars[groups['orderer'][0]]['ntw_monitoring_ip']}}:7050 "
-            #         "-c peerchannel "
-            #         "-f /tmp/anchorPeersUpdate.tx "
-            #         "--tls true "
-            #         "--cafile /tmp/crypto-config/ordererOrganizations/ordererorg.example.com/orderers/{{hostvars[groups['orderer'][0]]['ntw_monitoring_ip']}}/msp/tlscacerts/tlsca.ordererorg.example.com-cert.pem "
-            #         "> /tmp/peer_anchor_update.out 2>&1"
-            #     ),
-            #     display_name="Update anchor peers",
-            #     environment=adminenv
-            # )
 
             p.fetch(src="/tmp/peerchannel.block", dest="/tmp/peerchannel.block", flat="yes")
 
@@ -284,8 +262,37 @@ class Hyperledger(Service):
              )
 
     def destroy(self):
-        super()
-        pass
+        with play_on(pattern_hosts="peer", roles=self.roles) as p:
+            p.shell(
+                "pkill peer",
+                display_name="Kill peer process"
+            )
+            p.file(
+                path="/tmp/peer*",
+                state="absent",
+                display_name="Delete peers logs files"
+            )
+        with play_on(pattern_hosts="orderer", roles=self.roles) as p:
+            p.shell(
+                "pkill orderer",
+                display_name="Kill orderer process"
+            )
+        with play_on(pattern_hosts="all", roles=self.roles) as p:
+            p.file(
+                path="/var/hyperledger",
+                state="absent",
+                display_name="Delete hyperledger blockchain"
+            )
+            p.file(
+                path="/tmp/hyperledger",
+                state="absent",
+                display_name="Delete hyperledger installation directory"
+            )
+            p.file(
+                path="/tmp/crypto-config",
+                state="absent",
+                display_name="Delete crypto-config directory"
+            )
 
     def backup(self):
         super()

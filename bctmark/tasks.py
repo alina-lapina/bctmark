@@ -12,6 +12,7 @@ from .services import Hyperledger, EthGethClique, EthGethCliqueArm7, BCTMarkLocu
 from .utils import print_ex_time
 import logging
 import os
+import yaml
 from bctmark.constants import ANSIBLE_DIR
 
 logger = logging.getLogger(__name__)
@@ -169,11 +170,24 @@ def backup(**kwargs):
 @print_ex_time
 def destroy(**kwargs):
     env = kwargs["env"]
-    extra_vars = {
-        "enos_action": "destroy"
-    }
-    run_ansible([os.path.join(ANSIBLE_DIR, "site.yml")],
-                env["inventory"], extra_vars=extra_vars)
+    roles = env["roles"]
+
+    telegraf_agents = []
+
+    if any("hyperledger" in r for r in roles):
+        s = Hyperledger(
+            orderers=roles["hyperledger_orderer"],
+            peers=roles["hyperledger_peer"]
+        )
+        s.destroy()
+        telegraf_agents = roles["hyperledger_orderer"] + roles["hyperledger_peer"]
+
+    if "dashboard" in roles:
+        m = Monitoring(collector=roles["dashboard"],
+                       ui=roles["dashboard"],
+                       agent=telegraf_agents,
+                       network='ntw_monitoring')
+        m.destroy()
 
 
 @enostask()
@@ -219,6 +233,26 @@ def debug(var, env):
     roles = env["roles"]
     with play_on(pattern_hosts="all", roles=roles) as p:
         p.debug(var=var)
+
+@enostask()
+def status(env, role_asked):
+    def print_hosts(role):
+        for host in list(set(roles[role])):
+            print(f"# {host.alias}")
+            print(yaml.dump(host.extra, default_flow_style=False))
+    roles = env["roles"]
+    print("STATUS")
+
+    if role_asked is not None:
+        if role_asked in roles:
+            print_hosts(role_asked)
+        else:
+            print(f"Role '{role_asked}' is unknown. Known roles: {list(set(roles.keys()))}")
+    else:
+        for role in list(set(roles.keys())):
+            print("+----------------------+")
+            print(f"{role}:")
+            print_hosts(role)
 
 
 PROVIDERS = {

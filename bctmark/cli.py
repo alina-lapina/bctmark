@@ -146,3 +146,12 @@ def replay(transactions_file, env):
               help="alternative environment directory")
 def debug(var, env):
     t.debug(var, env=env)
+
+
+@cli.command(help="Print environment info")
+@click.option("--role",
+              help="filter on a given role")
+@click.option("--env",
+              help="alternative environment directory")
+def status(role,env):
+    t.status(env=env, role_asked=role)
