@@ -37,4 +37,24 @@
           shell: "make install"
           args:
             chdir: /tmp/Python-3.7.0
+        - name: Add alternative python > Python 3.7
+          shell: "update-alternatives --install /usr/bin/python python /usr/local/bin/python3.7 1"
+        - name: Add alternative python 3 > Python 3.7
+          shell: "update-alternatives --install /usr/bin/python3 python3 /usr/local/bin/python3.7 1"
+        - name: Set python > Python 3.7
+          shell: "update-alternatives --set python /usr/local/bin/python3.7"
+        - name: Set python3 > Python 3.7
+          shell: "update-alternatives --set python3 /usr/local/bin/python3.7"
+        - name: Remove existing pip
+          shell: "rm /usr/bin/pip /usr/bin/pip3"
+        - name: Set pip to pip3.7
+          shell: "update-alternatives --install /usr/bin/pip pip /usr/local/bin/pip3.7 1"
+        - name: Set pip3 to pip3.7
+          shell: "update-alternatives --install /usr/bin/pip3 pip3 /usr/local/bin/pip3.7 1"
+        - name: Repair lsb_release if needed
+          shell: "ln -s /usr/share/pyshared/lsb_release.py /usr/local/lib/python3.7/site-packages/lsb_release.py"
+        - name: Repair apt if needed
+          shell: "cp apt_pkg.cpython-35m-arm-linux-gnueabihf.so apt_pkg.so"
+          args:
+            chdir: "/usr/lib/python3/dist-packages"
       when: python_minor_version.stdout | int < 6
