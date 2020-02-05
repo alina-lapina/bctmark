@@ -18,6 +18,7 @@ class EthGethCliqueArm7(Service, BlockchainService):
         run_ansible([_playbook], roles=self.roles, extra_vars=self.extra_vars)
         with play_on(pattern_hosts="all", roles=self.roles) as p:
             p.pip(display_name="Installing Web3", name="web3", executable="pip3")
+            p.apt(display_name="Install NPM", name="npm", state="present")
             p.npm(display_name="Install solcjs", name="solc", path="/usr/local/bin/", **{'global': 'yes'})
             p.shell("update-alternatives --install /usr/bin/solc solc /usr/local/bin/solcjs 1")
 

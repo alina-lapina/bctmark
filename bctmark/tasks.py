@@ -77,21 +77,11 @@ def prepare(**kwargs):
     env = kwargs["env"]
     roles = env["roles"]
 
-    # Install python 3.7 on every hosts
-    with play_on(pattern_hosts="all", roles=roles) as p:
-        p.shell("""
-            ((python3 --version) && (pip3 --version)) || (
-                apt update && apt install -y python3 python3-pip)
-            """)
-
-    _playbook = os.path.join(CURRENT_PATH, "playbooks", "install_python3.7.yaml")
-    run_ansible([_playbook], roles=roles)
-
     if "dashboard" in roles:
         telegraf_conf = ""
         telegraf_agents = []
         if any("ethgethcliquearm7" in r for r in roles):
-            s = EthGethClique(
+            s = EthGethCliqueArm7(
                 bootnodes=roles["ethgethcliquearm7_bootnode"],
                 peers=roles["ethgethcliquearm7_peer"],
                 dashboard=roles["dashboard"]
@@ -131,7 +121,7 @@ def prepare(**kwargs):
         print("GRAFANA : user=admin, password=admin")
     else:
         if any("ethgethcliquearm7" in r for r in roles):
-            s = EthGethClique(
+            s = EthGethCliqueArm7(
                 bootnodes=roles["ethgethcliquearm7_bootnode"],
                 peers=roles["ethgethcliquearm7_peer"]
             )
@@ -217,11 +207,11 @@ def replay(transactions_file, env):
     networks = env["networks"]
 
     if "bench_worker" in roles:
-        peers = roles["peer"] + roles["bench_worker"]
+        peers = roles["ethgethclique_peer"] + roles["bench_worker"]
     else:
-        peers = roles["peer"]
+        peers = roles["ethgethclique_peer"]
 
-    e = EthGethClique(bootnodes=roles["bootnode"], peers=peers)
+    e = EthGethClique(bootnodes=roles["ethgethclique_bootnode"], peers=peers)
     b = BCTMarkWorker(roles["bench_worker"])
     r = ReplayManager(b, transactions_file, e)
     r.replay_transactions()
