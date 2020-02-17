@@ -147,13 +147,23 @@ def prepare(**kwargs):
 
 @enostask()
 @print_ex_time
-def backup(**kwargs):
-    env = kwargs["env"]
-    extra_vars = {
-        "enos_action": "backup"
-    }
-    run_ansible([os.path.join(ANSIBLE_DIR, "site.yml")],
-                env["inventory"], extra_vars=extra_vars)
+def backup(env):
+    roles = env["roles"]
+    telegraf_agents = []
+
+    if any("ethgethclique" in r for r in roles):
+        s = EthGethClique(
+            bootnodes=roles["ethgethclique_bootnode"],
+            peers=roles["ethgethclique_peer"]
+        )
+        s.backup()
+
+    if "dashboard" in roles:
+        m = Monitoring(collector=roles["dashboard"],
+                       ui=roles["dashboard"],
+                       agent=telegraf_agents,
+                       network='ntw_monitoring')
+        m.backup()
 
 
 @enostask()
@@ -171,7 +181,12 @@ def destroy(**kwargs):
         )
         s.destroy()
         telegraf_agents = roles["hyperledger_orderer"] + roles["hyperledger_peer"]
-
+    if any("ethgethclique" in r for r in roles):
+        s = EthGethClique(
+            bootnodes=roles["ethgethclique_bootnode"],
+            peers=roles["ethgethclique_peer"]
+        )
+        s.destroy()
     if "dashboard" in roles:
         m = Monitoring(collector=roles["dashboard"],
                        ui=roles["dashboard"],
@@ -180,15 +195,19 @@ def destroy(**kwargs):
         m.destroy()
 
 
+def _deploy_locust(roles):
+    locust = Locust(master=roles["dashboard"],
+                    agents=roles["bench_worker"],
+                    network="ntw_monitoring")
+    locust.deploy()
+    return locust
+
 @enostask()
 @print_ex_time
 def benchmark(experiment_directory, main_file, env):
     roles = env["roles"]
 
-    locust = Locust(master=roles["dashboard"],
-                    agents=roles["bench_worker"],
-                    network="ntw_monitoring")
-    locust.deploy()
+    locust = _deploy_locust(roles)
 
     target_lists = {r: ';'.join(map(lambda x: x.extra["ntw_monitoring_ip"], l)) for r, l in roles.items()}
     print(target_lists)
@@ -198,6 +217,26 @@ def benchmark(experiment_directory, main_file, env):
         environment=target_lists)
     ui_address = roles["dashboard"][0].extra["ntw_monitoring_ip"]
     print("LOCUST : The Locust UI is available at http://%s:8089" % ui_address)
+
+
+@enostask()
+@print_ex_time
+def benchmark_headless(experiment_directory, main_file, nb_clients, hatch_rate, run_time, density, env):
+    roles = env["roles"]
+
+    locust = _deploy_locust(roles)
+
+    target_lists = {r: ';'.join(map(lambda x: x.extra["ntw_monitoring_ip"], l)) for r, l in roles.items()}
+    print(target_lists)
+    locust.run_headless(
+        expe_dir=experiment_directory,
+        locustfile=main_file,
+        environment=target_lists,
+        nb_clients=nb_clients,
+        hatch_rate=hatch_rate,
+        run_time=run_time,
+        density=density
+    )
 
 
 @enostask()
@@ -223,6 +262,7 @@ def debug(var, env):
     roles = env["roles"]
     with play_on(pattern_hosts="all", roles=roles) as p:
         p.debug(var=var)
+
 
 @enostask()
 def status(env, role_asked):

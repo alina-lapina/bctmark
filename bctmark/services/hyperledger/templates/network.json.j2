@@ -1,0 +1,76 @@
+{
+  "name": "sample-network",
+  "description": "A sample network",
+  "version": "0.1",
+  "client": {
+    "organization": "PeerOrg",
+    "credentialStore": {
+      "path": "/tmp/hfc-kvs",
+      "cryptoStore": {
+        "path": "/tmp/hfc-cvs"
+      },
+      "wallet": "mywallet"
+    }
+  },
+  "organizations": {
+    "ordererorg.example.com": {
+      "mspid": "OrdererMSP",
+      "orderers": [
+        {{list_orderers_ip | join(',')}}
+      ],
+      "users": {
+        "Admin": {
+          "cert": "/tmp/crypto-config/ordererOrganizations/ordererorg.example.com/users/Admin@ordererorg.example.com/msp/signcerts/Admin@ordererorg.example.com-cert.pem",
+          "private_key": "{{orderer_private_keys.files[0].path}}"
+        }
+      }
+    },
+    "peerorg.example.com": {
+      "mspid": "PeerMSP",
+      "peers": [
+        {{list_peers_ip | join(',')}}
+      ],
+      "users": {
+        "Admin": {
+          "cert": "/tmp/crypto-config/peerOrganizations/peerorg.example.com/users/Admin@peerorg.example.com/msp/signcerts/Admin@peerorg.example.com-cert.pem",
+          "private_key": "{{peer_private_keys.files[0].path}}"
+        },
+        "User1": {
+          "cert": "/tmp/crypto-config/peerOrganizations/peerorg.example.com/users/User1@peerorg.example.com/msp/cacerts/ca.peerorg.example.com-cert.pem",
+          "private_key": "{{peer_private_keys_user.files[0].path}}"
+        }
+      }
+    }
+  },
+  "orderers": {
+{% for host in list_orderers_ip %}
+    "{{host": {
+      "url": "{{host}}:7050",
+      "grpcOptions": {
+        "grpc.ssl_target_name_override": "{{host}}",
+        "grpc-max-send-message-length": 15
+      },
+      "tlsCACerts": {
+        "path": "/tmp/crypto-config/ordererOrganizations/ordererorg.example.com/orderers/{{host}}/msp/tlscacerts/tlsca.ordererorg.example.com-cert.pem"
+      }
+    }{{ "," if not loop.last else ''}}
+{% endfor %}
+  },
+  "peers": {
+{% for host in list_peers_ip %}
+    "{{host}}": {
+      "url": "{{host}}:7051",
+      "eventUrl": "{{host}}:7053",
+      "grpcOptions": {
+        "grpc.ssl_target_name_override": "{{host}}",
+        "grpc.http2.keepalive_time": 15
+      },
+      "tlsCACerts": {
+	"path": "/tmp/crypto-config/peerOrganizations/peerorg.example.com/peers/{{host}}/msp/tlscacerts/tlsca.peerorg.example.com-cert.pem"
+      }
+    }{{ "," if not loop.last else ''}}
+{% endfor %}
+  },
+  "certificateAuthorities":{
+  }
+}

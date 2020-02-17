@@ -95,8 +95,8 @@ def prepare(env):
 @cli.command(help="Backup the deployed environment")
 @click.option("--env",
               help="alternative environment directory")
-def backup(env):
-    t.backup(env=env)
+def backup(env, role):
+    t.backup(env=env, role_asked=role)
 
 
 @cli.command(help="Destroy the deployed environment")
@@ -132,6 +132,19 @@ def benchmark(experiment_directory, main_file, env):
     t.benchmark(experiment_directory, main_file, env=env)
 
 
+@cli.command(help="Run benchmark from bctmark_locust script (headless)")
+@click.argument("experiment_directory")
+@click.argument("main_file")
+@click.argument("nb_clients")
+@click.argument("hatch_rate")
+@click.argument("run_time")
+@click.argument("density")
+@click.option("--env",
+              help="alternative environment directory")
+def benchmark_headless(experiment_directory, main_file, nb_clients, hatch_rate, run_time, density, env):
+    t.benchmark(experiment_directory, main_file, nb_clients, hatch_rate, run_time, density, env=env)
+
+
 @cli.command(help="Replay transactions based on YAML file")
 @click.argument("transactions_file")
 @click.option("--env",
@@ -153,5 +166,5 @@ def debug(var, env):
               help="filter on a given role")
 @click.option("--env",
               help="alternative environment directory")
-def status(role,env):
+def status(role, env):
     t.status(env=env, role_asked=role)

@@ -261,10 +261,24 @@ class Hyperledger(Service):
                  become="yes"
              )
 
+        _playbook = os.path.join(CURRENT_PATH, "playbooks", "create_connection_profile.yaml")
+        _connection_profile_tmpl = os.path.join(CURRENT_PATH, "templates", "network.json.j2")
+        _list_orderers_ip = [h.extra['ntw_monitoring_ip'] for h in self.orderers]
+        _list_peers_ip = [h.extra['ntw_monitoring_ip'] for h in self.peers]
+        run_ansible(
+            [_playbook],
+            roles=self.roles,
+            extra_vars={
+                "template_src": _connection_profile_tmpl,
+                'list_orderers_ip': _list_orderers_ip,
+                'list_peers_ip': _list_peers_ip
+            }
+        )
+
     def destroy(self):
         with play_on(pattern_hosts="peer", roles=self.roles) as p:
             p.shell(
-                "pkill peer",
+                "if pgrep peer; then pkill peer; fi",
                 display_name="Kill peer process"
             )
             p.file(
@@ -274,7 +288,7 @@ class Hyperledger(Service):
             )
         with play_on(pattern_hosts="orderer", roles=self.roles) as p:
             p.shell(
-                "pkill orderer",
+                "if pgrep orderer; then pkill orderer; fi",
                 display_name="Kill orderer process"
             )
         with play_on(pattern_hosts="all", roles=self.roles) as p:
@@ -292,6 +306,11 @@ class Hyperledger(Service):
                 path="/tmp/crypto-config",
                 state="absent",
                 display_name="Delete crypto-config directory"
+            )
+            p.file(
+                path="/bin/cryptogen",
+                state="absent",
+                display_name="Delete cryptogen"
             )
 
     def backup(self):

@@ -1,0 +1,19 @@
+---
+-   hosts: all
+    tasks:
+    -   name: Get Orderer' org private key (Admin)
+        find:
+          paths: /tmp/crypto-config/ordererOrganizations/ordererorg.example.com/users/Admin@ordererorg.example.com/msp/keystore/
+        register: orderer_private_keys
+    -   name: Get Peers' org private key (Admin)
+        find:
+          paths: /tmp/crypto-config/peerOrganizations/peerorg.example.com/users/Admin@peerorg.example.com/msp/keystore/
+        register: peer_private_keys
+    -   name: Get Peers' org private key (User)
+        find:
+          paths: /tmp/crypto-config/peerOrganizations/peerorg.example.com/users/User1@peerorg.example.com/msp/keystore/
+        register: peer_private_keys_user
+    -   name: Copy connection profile template
+        template:
+           src: "{{template_src}}"
+           dest: /tmp/network.json

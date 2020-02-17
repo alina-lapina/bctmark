@@ -3,6 +3,8 @@ from bctmark.services.types.blockchain_service import BlockchainService, Address
 from enoslib.api import play_on, run_ansible, run_command
 from enoslib.host import Host
 from enoslib.service.service import Service
+from datetime import datetime
+from pathlib import Path
 from typing import List, Dict
 import os
 
@@ -22,12 +24,20 @@ class EthGethClique(Service, BlockchainService):
             p.shell("snap install solc")
 
     def destroy(self):
-        super()
-        pass
+        with play_on(pattern_hosts="all", roles=self.roles) as p:
+            p.shell("if pgrep geth; then pkill geth; fi")
 
     def backup(self):
-        super()
-        pass
+        with play_on(pattern_hosts="all", roles=self.roles) as p:
+            p.pip(display_name="Installing PyYAML", name="pyyaml")
+            p.copy(
+                display_name="Copy blockchain backup python script",
+                src=os.path.join(CURRENT_PATH, "files", "backup.py"),
+                dest="/tmp/backup.py"
+            )
+            p.command("python3 /tmp/backup.py")
+            now_str = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
+            p.fetch(src="/tmp/blockchain.yaml", dest=f"{Path.cwd()}/backup-{now_str}")
 
     def create_n_accounts(self, host: Host, password: str = 'password', n: int = 1):
         if not (host in self.bootnodes or host in self.peers):
