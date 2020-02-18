@@ -16,7 +16,7 @@
     "ordererorg.example.com": {
       "mspid": "OrdererMSP",
       "orderers": [
-        {{list_orderers_ip | join(',')}}
+        {{'\"' + list_orderers_ip | join('\", \"') + '\"'}}
       ],
       "users": {
         "Admin": {
@@ -28,7 +28,7 @@
     "peerorg.example.com": {
       "mspid": "PeerMSP",
       "peers": [
-        {{list_peers_ip | join(',')}}
+        {{'\"' + list_peers_ip | join('\", \"') + '\"'}}
       ],
       "users": {
         "Admin": {
@@ -44,7 +44,7 @@
   },
   "orderers": {
 {% for host in list_orderers_ip %}
-    "{{host": {
+    "{{host}}": {
       "url": "{{host}}:7050",
       "grpcOptions": {
         "grpc.ssl_target_name_override": "{{host}}",
