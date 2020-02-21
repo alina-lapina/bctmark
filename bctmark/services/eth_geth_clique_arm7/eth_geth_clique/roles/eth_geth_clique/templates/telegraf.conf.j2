@@ -65,9 +65,22 @@
   [inputs.http.headers]
     Content-Type = "application/json"
 
+[[inputs.http]]
+  name_override = "eth_tx_pool"
+  urls = [
+    "http://localhost:8545"
+  ]
+  method = "POST"
+  body = '{"jsonrpc":"2.0","method":"txpool_status","params":[],"id":1}'
+  content_encoding = "identity"
+  data_format = "json"
+  json_string_fields = ["result_pending", "result_queued"]
+  [inputs.http.headers]
+    Content-Type = "application/json"
+
 [[processors.converter]]
   [processors.converter.fields]
-  integer = ["result"]
+  integer = ["result", "result_pending", "result_queued"]
 
 [[outputs.influxdb]]
   urls = ["http://{{ collector_address }}:8086"]

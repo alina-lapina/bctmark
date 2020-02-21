@@ -95,8 +95,8 @@ def prepare(env):
 @cli.command(help="Backup the deployed environment")
 @click.option("--env",
               help="alternative environment directory")
-def backup(env, role):
-    t.backup(env=env, role_asked=role)
+def backup(env):
+    t.backup(env=env)
 
 
 @cli.command(help="Destroy the deployed environment")

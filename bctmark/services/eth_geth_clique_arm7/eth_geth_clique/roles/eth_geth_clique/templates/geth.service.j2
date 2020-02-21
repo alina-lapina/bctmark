@@ -1,4 +1,4 @@
-{% set options = ["--config /tmp/home/geth/config.toml"] %}
+{% set options = ["--config /tmp/home/geth/config.toml", "--verbosity 5"] %}
 {% if activate_mining %}
     {{ options.append("--mine") }}
     {{ options.append("--miner.threads 10") }}

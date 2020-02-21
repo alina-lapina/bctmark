@@ -28,7 +28,7 @@
 [[inputs.net]]
   interfaces = []
 [[inputs.http]]
-  name_override = "parity_net_peerCount"
+  name_override = "net_peerCount"
   urls = [
     "http://localhost:8545"
   ]
@@ -41,7 +41,7 @@
   [inputs.http.headers]
     Content-Type = "application/json"
 [[inputs.http]]
-  name_override = "parity_eth_blockNumber"
+  name_override = "eth_blockNumber"
   urls = [
     "http://localhost:8545"
   ]
@@ -53,7 +53,7 @@
   [inputs.http.headers]
     Content-Type = "application/json"
 [[inputs.http]]
-  name_override = "parity_eth_hashrate"
+  name_override = "eth_hashrate"
   urls = [
     "http://localhost:8545"
   ]
@@ -65,9 +65,22 @@
   [inputs.http.headers]
     Content-Type = "application/json"
 
+[[inputs.http]]
+  name_override = "eth_tx_pool"
+  urls = [
+    "http://localhost:8545"
+  ]
+  method = "POST"
+  body = '{"jsonrpc":"2.0","method":"txpool_status","params":[],"id":1}'
+  content_encoding = "identity"
+  data_format = "json"
+  json_string_fields = ["result_pending", "result_queued"]
+  [inputs.http.headers]
+    Content-Type = "application/json"
+
 [[processors.converter]]
   [processors.converter.fields]
-  integer = ["result"]
+  integer = ["result", "result_pending", "result_queued"]
 
 [[outputs.influxdb]]
   urls = ["http://{{ collector_address }}:8086"]
