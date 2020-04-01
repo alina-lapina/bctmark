@@ -8,12 +8,11 @@ from enoslib.infra.enos_vagrant.provider import Enos_vagrant
 from enoslib.infra.enos_static.provider import Static
 from enoslib.service import Netem, Locust
 
-from .services import Hyperledger, EthGethClique, EthGethCliqueArm7, BCTMarkLocust, ReplayManager, BCTMarkWorker, Monitoring
+from .services import Hyperledger, EthGethClique, EthGethCliqueArm7, ReplayManager, BCTMarkWorker, Monitoring
 from .utils import print_ex_time
 import logging
 import os
 import yaml
-from bctmark.constants import ANSIBLE_DIR
 
 logger = logging.getLogger(__name__)
 CURRENT_PATH = os.path.abspath(os.path.dirname(os.path.realpath(__file__)))
@@ -206,6 +205,7 @@ def _deploy_locust(roles):
                     network="ntw_monitoring")
     locust.deploy()
     return locust
+
 
 @enostask()
 @print_ex_time
