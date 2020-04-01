@@ -158,12 +158,12 @@ def backup(env):
         )
         s.backup()
 
-    if "dashboard" in roles:
-        m = Monitoring(collector=roles["dashboard"],
-                       ui=roles["dashboard"],
-                       agent=telegraf_agents,
-                       network='ntw_monitoring')
-        m.backup()
+    #if "dashboard" in roles:
+    #    m = Monitoring(collector=roles["dashboard"],
+    #                   ui=roles["dashboard"],
+    #                   agent=telegraf_agents,
+    #                   network='ntw_monitoring')
+    #    m.backup()
 
 
 @enostask()
@@ -193,6 +193,11 @@ def destroy(**kwargs):
                        agent=telegraf_agents,
                        network='ntw_monitoring')
         m.destroy()
+    if "bench_worker" in roles:
+        locust = Locust(master=roles["dashboard"],
+                        agents=roles["bench_worker"],
+                        network="ntw_monitoring")
+        locust.destroy()
 
 
 def _deploy_locust(roles):
@@ -214,7 +219,8 @@ def benchmark(experiment_directory, main_file, env):
     locust.run_with_ui(
         expe_dir=experiment_directory,
         locustfile=main_file,
-        environment=target_lists)
+        environment=target_lists,
+        density=20)
     ui_address = roles["dashboard"][0].extra["ntw_monitoring_ip"]
     print("LOCUST : The Locust UI is available at http://%s:8089" % ui_address)
 

@@ -25,17 +25,17 @@
 - name: kill running geth process if needed
   shell: "pkill geth || true"
 
-- name: Download Geth 1.8.23
+- name: Download Geth 1.9.11
   unarchive:
-    src: https://gethstore.blob.core.windows.net/builds/geth-alltools-linux-amd64-1.8.23-c9427004.tar.gz
+    src: https://gethstore.blob.core.windows.net/builds/geth-alltools-linux-amd64-1.9.10-58cf5686.tar.gz
     dest: /tmp/
     remote_src: yes
 
 - name: Install Geth command
-  command: cp /tmp/geth-alltools-linux-amd64-1.8.23-c9427004/geth /usr/bin/geth
+  command: cp /tmp/geth-alltools-linux-amd64-1.9.10-58cf5686/geth /usr/bin/geth
 
 - name: Install Geth Bootnode utility command
-  command: cp /tmp/geth-alltools-linux-amd64-1.8.23-c9427004/bootnode /usr/bin/bootnode
+  command: cp /tmp/geth-alltools-linux-amd64-1.9.10-58cf5686/bootnode /usr/bin/bootnode
 
 - name: configuration file for geth bootnode
   template:
@@ -69,10 +69,14 @@
 - name: enable geth service
   service: name=geth enabled=yes state=started
 
-- name: Wait until the nodekey file is present before continuing
+- name: Wait until HTTP port open
   wait_for:
-    path: /tmp/home/geth/.ethereum/geth/nodekey
+    port: 8545
+    delay: 5
 
 - name: Retrieve Enode
-  shell: bootnode -writeaddress -nodekeyhex `sudo cat /tmp/home/geth/.ethereum/geth/nodekey`
+  shell: geth attach http://127.0.0.1:8545 --exec "admin.nodeInfo.enode" | sed -n 's/.*enode:\/\/\([0-9a-zA-Z]*\).*/\1/p'
   register: enode_address
+
+- debug:
+    msg: "enode_address: {{enode_address}}"

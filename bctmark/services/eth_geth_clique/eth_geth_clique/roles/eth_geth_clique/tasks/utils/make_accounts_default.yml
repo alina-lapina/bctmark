@@ -22,7 +22,7 @@
 
 - name: Delete former chain
   file:
-    path: /tmp/home/geth/.ethereum/geth
+    path: /tmp/home/geth/.ethereum/geth/chaindata/
     state: absent
 
 - name: Init geth
