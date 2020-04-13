@@ -7,9 +7,11 @@ from enoslib.infra.enos_g5k.provider import G5k
 from enoslib.infra.enos_vagrant.provider import Enos_vagrant
 from enoslib.infra.enos_static.provider import Static
 from enoslib.service import Netem, Locust
+from pathlib import Path
 
 from .services import Hyperledger, EthGethClique, EthGethCliqueArm7, ReplayManager, BCTMarkWorker, Monitoring
 from .utils import print_ex_time
+from .utils.planner import Planner
 import logging
 import os
 import yaml
@@ -27,6 +29,7 @@ def g5k(config, force, env=None, **kwargs):
     env["config"] = config
     env["roles"] = roles
     env["networks"] = networks
+    return env
 
 
 @enostask(new=True)
@@ -38,6 +41,7 @@ def vagrant(config, force, env=None, **kwargs):
     env["config"] = config
     env["roles"] = roles
     env["networks"] = networks
+    return env
 
 @enostask(new=True)
 @print_ex_time
@@ -48,6 +52,7 @@ def static(config, force, env=None, **kwargs):
     env["config"] = config
     env["roles"] = roles
     env["networks"] = networks
+    return env
 
 @enostask()
 @print_ex_time
@@ -155,14 +160,14 @@ def backup(env):
             bootnodes=roles["ethgethclique_bootnode"],
             peers=roles["ethgethclique_peer"]
         )
-        s.backup()
+        s.backup(os.path.join(Path.cwd(), "current"))
 
-    #if "dashboard" in roles:
-    #    m = Monitoring(collector=roles["dashboard"],
-    #                   ui=roles["dashboard"],
-    #                   agent=telegraf_agents,
-    #                   network='ntw_monitoring')
-    #    m.backup()
+    if "dashboard" in roles:
+        m = Monitoring(collector=roles["dashboard"],
+                       ui=roles["dashboard"],
+                       agent=telegraf_agents,
+                       network='ntw_monitoring')
+        m.backup(os.path.join(Path.cwd(), "current"))
 
 
 @enostask()
@@ -207,6 +212,11 @@ def _deploy_locust(roles):
     return locust
 
 
+@print_ex_time
+def run(provider, plan, force):
+    planner = Planner(plan["experiments"])
+    planner.run(provider, force)
+
 @enostask()
 @print_ex_time
 def benchmark(experiment_directory, main_file, env):
@@ -229,11 +239,10 @@ def benchmark(experiment_directory, main_file, env):
 @print_ex_time
 def benchmark_headless(experiment_directory, main_file, nb_clients, hatch_rate, run_time, density, env):
     roles = env["roles"]
-
     locust = _deploy_locust(roles)
-
     target_lists = {r: ';'.join(map(lambda x: x.extra["ntw_monitoring_ip"], l)) for r, l in roles.items()}
     print(target_lists)
+
     locust.run_headless(
         expe_dir=experiment_directory,
         locustfile=main_file,
@@ -241,7 +250,7 @@ def benchmark_headless(experiment_directory, main_file, nb_clients, hatch_rate, 
         nb_clients=nb_clients,
         hatch_rate=hatch_rate,
         run_time=run_time,
-        density=density
+        density=int(density)
     )
 
 

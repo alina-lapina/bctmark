@@ -10,7 +10,17 @@ blocks = {}
 current_block = w3.eth.getBlock('latest')
 
 while current_block.number != 0:
-    blocks.update({int(current_block.number): current_block.hash.hex()})
+    transactions = {}
+    for transaction in current_block['transactions']:
+        receipt = w3.eth.getTransactionReceipt(transaction)
+        transactions[transaction.hex()] = {
+            'gasUsed': receipt['gasUsed']
+        }
+    block_to_insert = {
+        'hash': current_block.hash.hex(),
+        'transactions': transactions
+    }
+    blocks.update({int(current_block.number): block_to_insert})
     current_block = w3.eth.getBlock(current_block.number-1)
 
 with open('/tmp/blockchain.yaml', 'w') as f:

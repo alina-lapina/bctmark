@@ -32,7 +32,7 @@ class EthGethClique(Service, BlockchainService):
         with play_on(pattern_hosts="all", roles=self.roles) as p:
             p.shell("if pgrep geth; then pkill geth; fi")
 
-    def backup(self):
+    def backup(self, backup_dir = Path.cwd()):
         with play_on(pattern_hosts="all", roles=self.roles) as p:
             p.pip(display_name="Installing PyYAML", name="pyyaml")
             p.copy(
@@ -42,7 +42,7 @@ class EthGethClique(Service, BlockchainService):
             )
             p.command("python3 /tmp/backup.py")
             now_str = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
-            p.fetch(src="/tmp/blockchain.yaml", dest=f"{Path.cwd()}/backup-{now_str}")
+            p.fetch(src="/tmp/blockchain.yaml", dest=f"{backup_dir}/backup-ethereum-{now_str}")
 
     def create_n_accounts(self, host: Host, password: str = 'password', n: int = 1):
         if not (host in self.bootnodes or host in self.peers):

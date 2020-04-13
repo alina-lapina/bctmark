@@ -122,6 +122,15 @@ def deploy(provider, force, conf, env):
     t.inventory()
     t.prepare(env=env)
 
+@cli.command(help="Run several experiments following a plan")
+@click.argument("provider")
+@click.argument("plan")
+@click.option("--force",
+        is_flag=True,
+        help="force redeployment")
+def run(provider, plan, force):
+    with open(plan, 'r') as f:
+        t.run(provider, yaml.safe_load(f), force)
 
 @cli.command(help="Run benchmark from bctmark_locust script")
 @click.argument("experiment_directory")
@@ -142,7 +151,7 @@ def benchmark(experiment_directory, main_file, env):
 @click.option("--env",
               help="alternative environment directory")
 def benchmark_headless(experiment_directory, main_file, nb_clients, hatch_rate, run_time, density, env):
-    t.benchmark(experiment_directory, main_file, nb_clients, hatch_rate, run_time, density, env=env)
+    t.benchmark_headless(experiment_directory, main_file, nb_clients, hatch_rate, run_time, density, env=env)
 
 
 @cli.command(help="Replay transactions based on YAML file")
