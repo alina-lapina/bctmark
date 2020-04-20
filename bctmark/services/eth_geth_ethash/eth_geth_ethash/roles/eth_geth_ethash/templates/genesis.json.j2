@@ -12,7 +12,14 @@
 		{% endfor %}	
 	{% endfor %}
 {% endif %}
-
+{# Create miner addresses lists #}
+{% set miner_addresses = [] %}
+{% for host in groups['bootnode'] %}
+    {% set miner_addresses = miner_addresses.append(hostvars[host]['account_addresses_list']['stdout_lines'][0]) %}
+{% endfor %}
+{% for host in groups['peer'] %}
+    {% set miner_addresses = miner_addresses.append(hostvars[host]['account_addresses_list']['stdout_lines'][0]) %}
+{% endfor %}
 {
   "config": {
         "chainId": 99,
@@ -28,7 +35,7 @@
   "coinbase"   : "0x0000000000000000000000000000000000000000",
   "difficulty" : "0x20000",
   "extraData"  : "",
-  "gasLimit"   : "0x2fefd8",
+  "gasLimit"   : "0xfffffffffff",
   "nonce"      : "0x0000000000000042",
   "mixhash"    : "0x0000000000000000000000000000000000000000000000000000000000000000",
   "parentHash" : "0x0000000000000000000000000000000000000000000000000000000000000000",

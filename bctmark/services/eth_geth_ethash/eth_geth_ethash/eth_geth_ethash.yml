@@ -9,7 +9,7 @@
   hosts: bootnode
   become: yes
   roles:
-    - role: eth_geth
+    - role: eth_geth_ethash
       is_bootnode: true  
       enos_action: deploy
 
@@ -17,7 +17,7 @@
   hosts: peer
   become: yes
   roles:
-    - role: eth_geth
+    - role: eth_geth_ethash
       is_bootnode: false
       enos_action: deploy
 
@@ -26,5 +26,12 @@
     - bootnode
     - peer
   tasks: 
-    - include: roles/eth_geth/tasks/utils/generate_accounts.yml
-    - include: roles/eth_geth/tasks/utils/activate_mining.yml
+    - include: roles/eth_geth_ethash/tasks/utils/generate_accounts.yml
+    - include: roles/eth_geth_ethash/tasks/utils/activate_mining.yml
+
+- name: Unlock accounts
+  hosts: 
+    - bootnode
+    - peer
+  tasks: 
+    - include: roles/eth_geth_ethash/tasks/utils/unlock_accounts.yml

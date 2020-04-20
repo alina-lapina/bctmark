@@ -1,10 +1,3 @@
-{# Create bootnode peer list #}
-{% set bootnode_addresses = [] %}
-{% for host in groups['bootnode'] %}
-    {# hostvars[host]['ansible_eth1'] could be replaced by hostvars[host]['ansible_' + blockchain_network] to ajust to network name (but need to find an elegant way... #}
-    {% set bootnode_addresses = bootnode_addresses.append("\"enode://" ~ hostvars[host]['enode_address']['stdout'] ~ "@" ~ hostvars[host]['ansible_eth1']['ipv4']['address'] ~ ":30303\"") %}
-{% endfor %}
-
 [Eth]
 NetworkId = 9999
 SyncMode = "fast"
@@ -14,14 +7,16 @@ DatabaseCache = 82
 TrieCleanCache = 41
 TrieDirtyCache = 41
 TrieTimeout = 3600000000000
-MinerGasFloor = 8000000
-MinerGasCeil = 8000000
-MinerGasPrice = 1000000000
-MinerRecommit = 3000000000
-MinerNoverify = false
 EnablePreimageRecording = false
 EWASMInterpreter = ""
 EVMInterpreter = ""
+
+[Eth.Miner]
+GasFloor = 0
+GasCeil = 99999999999
+GasPrice = 1000000000
+Recommit = 3000000000
+Noverify = false
 
 [Eth.Ethash]
 CacheDir = "ethash"
@@ -61,16 +56,16 @@ HTTPHost = "0.0.0.0"
 HTTPPort = 8545
 HTTPCors = ["*"]
 HTTPVirtualHosts = ["localhost"]
-HTTPModules = ["personal", "admin", "db", "eth", "net", "web3", "miner", "shh", "txpool", "debug"]
+HTTPModules = ["personal", "admin", "eth", "net", "web3", "miner", "txpool", "debug"]
 WSHost = "0.0.0.0"
 WSPort = 8546
 WSOrigins = ["*"]
-WSModules = ["personal", "admin", "db", "eth", "net", "web3", "miner", "shh", "txpool", "debug"]
+WSModules = ["personal", "admin", "eth", "net", "web3", "miner", "txpool", "debug"]
 
 [Node.P2P]
 MaxPeers = 25
 NoDiscovery = false
-BootstrapNodes = [{{ bootnode_addresses | join(",") }}]
+BootstrapNodes = []
 StaticNodes = []
 TrustedNodes = []
 ListenAddr = ":30303"
@@ -81,7 +76,3 @@ ReadTimeout = 30000000000
 WriteTimeout = 30000000000
 IdleTimeout = 120000000000
 
-[Dashboard]
-Host = "localhost"
-Port = 8080
-Refresh = 5000000000

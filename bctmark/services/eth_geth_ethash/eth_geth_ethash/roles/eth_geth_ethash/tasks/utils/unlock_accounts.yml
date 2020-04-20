@@ -1,0 +1,8 @@
+---
+- name: Get all accounts
+  shell: geth attach http://127.0.0.1:8545 --exec "eth.accounts" 2>> /dev/null
+  register: accounts
+
+- name: Unlock all accounts
+  shell: geth attach http://127.0.0.1:8545 --exec "personal.unlockAccount('{{ item }}', 'password', 0)" 2>> /dev/null
+  loop: "{{ accounts.stdout }}"

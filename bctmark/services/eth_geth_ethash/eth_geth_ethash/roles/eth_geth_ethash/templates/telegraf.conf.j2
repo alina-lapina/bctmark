@@ -1,0 +1,87 @@
+[global_tags]
+  role = "default"
+
+[agent]
+  interval = "5s"
+  round_interval = true
+  metric_batch_size = 1000
+  metric_buffer_limit = 10000
+  collection_jitter = "0s"
+  flush_interval = "10s"
+  flush_jitter = "0s"
+  debug = false
+  quiet = false
+  hostname = ""
+  omit_hostname = false
+[[inputs.cpu]]
+  percpu = true
+  totalcpu = true
+  fielddrop = ["time_*"]
+[[inputs.disk]]
+  ignore_fs = ["tmpfs", "devtmpfs"]
+[[inputs.diskio]]
+[[inputs.kernel]]
+[[inputs.mem]]
+[[inputs.processes]]
+[[inputs.swap]]
+[[inputs.system]]
+[[inputs.net]]
+  interfaces = []
+[[inputs.http]]
+  name_override = "net_peerCount"
+  urls = [
+    "http://localhost:8545"
+  ]
+  method = "POST"
+  body = '{"method":"net_peerCount","params":[],"id":1,"jsonrpc":"2.0"}'
+  content_encoding = "identity"
+  data_format = "json"
+  json_string_fields = ["result"]
+  # Ugly AF but otherwise it doesn't work (duplicated 'header' table error)
+  [inputs.http.headers]
+    Content-Type = "application/json"
+[[inputs.http]]
+  name_override = "eth_blockNumber"
+  urls = [
+    "http://localhost:8545"
+  ]
+  method = "POST"
+  body = '{"method":"eth_blockNumber","params":[],"id":1,"jsonrpc":"2.0"}'
+  content_encoding = "identity"
+  data_format = "json"
+  json_string_fields = ["result"]
+  [inputs.http.headers]
+    Content-Type = "application/json"
+[[inputs.http]]
+  name_override = "eth_hashrate"
+  urls = [
+    "http://localhost:8545"
+  ]
+  method = "POST"
+  body = '{"method":"eth_hashrate","params":[],"id":1,"jsonrpc":"2.0"}'
+  content_encoding = "identity"
+  data_format = "json"
+  json_string_fields = ["result"]
+  [inputs.http.headers]
+    Content-Type = "application/json"
+
+[[inputs.http]]
+  name_override = "eth_tx_pool"
+  urls = [
+    "http://localhost:8545"
+  ]
+  method = "POST"
+  body = '{"jsonrpc":"2.0","method":"txpool_status","params":[],"id":1}'
+  content_encoding = "identity"
+  data_format = "json"
+  json_string_fields = ["result_pending", "result_queued"]
+  [inputs.http.headers]
+    Content-Type = "application/json"
+
+[[processors.converter]]
+  [processors.converter.fields]
+   integer = ["result", "result_pending", "result_queued"]
+
+[[outputs.influxdb]]
+  urls = ["http://{{ collector_address }}:8086"]
+  database = "metrics"

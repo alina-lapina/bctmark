@@ -1,16 +1,4 @@
-- name: Copy the account password file
-  copy:
-    src: roles/eth_geth/files/account_password.txt
-    dest: /tmp/account_password.txt
-
-- name: Generate accounts
-  shell: >
-    for i in `seq 5`;
-    do geth --datadir /tmp/home/geth/.ethereum/ -verbosity 0 account new --password /tmp/account_password.txt;
-    done;
-  become: yes
-  become_user: geth
-
+---
 - name: list accounts
   shell: geth --datadir /tmp/home/geth/.ethereum/ -verbosity 0 account list | grep -Po 'Account \#[0-9]+:\ {\K([a-zA-Z0-9]+)'
   register: account_addresses_list
@@ -22,7 +10,7 @@
 
 - name: Put genesis file
   template:
-    src: roles/eth_geth/templates/genesis.json.j2
+    src: roles/eth_geth_clique/templates/genesis.json.j2
     dest: /tmp/home/geth/genesis.json
     owner: geth
     mode: u=rwx,g=rwx,o=rwx
@@ -31,10 +19,10 @@
 
 - name: Stop geth service
   service: name=geth state=stopped
-  
+
 - name: Delete former chain
   file:
-    path: /tmp/home/geth/.ethereum/geth
+    path: /tmp/home/geth/.ethereum/geth/chaindata/
     state: absent
 
 - name: Init geth
