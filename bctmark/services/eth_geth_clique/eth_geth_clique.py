@@ -1,4 +1,6 @@
 from ast import literal_eval
+from copy import copy
+
 from bctmark.services.types.blockchain_service import BlockchainService, Address
 from enoslib.api import play_on, run_ansible, run_command
 from enoslib.host import Host
@@ -14,11 +16,12 @@ CURRENT_PATH = os.path.abspath(os.path.dirname(os.path.realpath(__file__)))
 class EthGethClique(Service, BlockchainService):
     def __init__(self, bootnodes: List[Host], peers: List[Host], extra_vars=None, **kwargs):
         BlockchainService.__init__(self, bootnodes, peers, extra_vars, **kwargs)
+        self.extra_vars.update({"ansible_python_interpreter": "/usr/bin/python3"})
 
     def deploy(self):
         _playbook = os.path.join(CURRENT_PATH, "eth_geth_clique", "eth_geth_clique.yml")
         run_ansible([_playbook], roles=self.roles, extra_vars=self.extra_vars)
-        with play_on(pattern_hosts="all", roles=self.roles) as p:
+        with play_on(pattern_hosts="all", roles=self.roles, extra_vars=self.extra_vars) as p:
             p.pip(display_name="Installing Web3", name="web3")
             p.pip(display_name="Installing py-solc", name="py-solc")
             p.apt(display_name="Installing snap package manager", name="snapd")
@@ -29,11 +32,11 @@ class EthGethClique(Service, BlockchainService):
                     state="link")
 
     def destroy(self):
-        with play_on(pattern_hosts="all", roles=self.roles) as p:
+        with play_on(pattern_hosts="all", roles=self.roles, extra_vars=self.extra_vars) as p:
             p.shell("if pgrep geth; then pkill geth; fi")
 
     def backup(self, backup_dir = Path.cwd()):
-        with play_on(pattern_hosts="all", roles=self.roles) as p:
+        with play_on(pattern_hosts="all", roles=self.roles, extra_vars=self.extra_vars) as p:
             p.pip(display_name="Installing PyYAML", name="pyyaml")
             p.copy(
                 display_name="Copy blockchain backup python script",
@@ -81,13 +84,19 @@ class EthGethClique(Service, BlockchainService):
             "use_utils_pb.yml"
 
         )
+
+        extra_vars = copy(self.extra_vars)
+        extra_vars.update({'playbook_to_include': 'make_accounts_default.yml'})
         run_ansible(
             [_playbook],
             roles=self.roles,
-            extra_vars={'playbook_to_include': 'make_accounts_default.yml'}
+            extra_vars=extra_vars
         )
+
+        extra_vars = copy(self.extra_vars)
+        extra_vars.update({'playbook_to_include': 'unlock_accounts.yml'})
         run_ansible(
             [_playbook],
             roles=self.roles,
-            extra_vars={'playbook_to_include': 'unlock_accounts.yml'}
+            extra_vars=extra_vars
         )

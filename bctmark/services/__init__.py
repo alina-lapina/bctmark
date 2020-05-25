@@ -1,4 +1,4 @@
-from .eth_geth.eth_geth import EthGeth
+from .eth_geth_ethash.eth_geth_ethash import EthGethEthash
 from .eth_geth_clique.eth_geth_clique import EthGethClique
 from .eth_geth_clique_arm7.eth_geth_clique_arm7 import EthGethCliqueArm7
 from .hyperledger.hyperledger import  Hyperledger

@@ -12,7 +12,8 @@ class Monitoring(Monitoring):
         requests = {
             'cpu': 'SELECT * FROM cpu',
             'net_peerCount': 'SELECT * FROM net_peerCount',
-            'eth_tx_pool': 'SELECT * FROM eth_tx_pool'
+            'eth_tx_pool': 'SELECT * FROM eth_tx_pool',
+            'mem': 'SELECT * FROM mem'
         }
         with play_on(pattern_hosts="collector", roles=self._roles
         ) as p:
