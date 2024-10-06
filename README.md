@@ -13,7 +13,8 @@ The first step is to claim resources on which to deploy the experiment. BCTMark 
 
 Bootnodes are peers that have an address known by everyone in the network. New peers can connect to those bootnodes to get the address of other peers in the network.
 
-´´´
+
+``` yaml
 Listing 4.1 – Configuration example for local deployment with Vagrant
 deployment:
 vagrant:
@@ -33,7 +34,8 @@ number: 2
 - roles: ["bench_worker"]
   flavour: tiny
 number: 1
-´´´
+```
+
 
 ## Prepare deployment
 Once the infrastructure resources are claimed, BCTMark can prepare the experiment by deploying the required components (i.e., download and install dependencies, copy configuration files...). For each role (see Listing 4.1 in the Thesis), there is a corresponding component to be deployed. The monitoring stack (dashboard role) and the benchmarking workers (bench_worker role) are common to many experiments. Users can define their roles to deploy their blockchain network. In the example in Listing 4.1, we need two roles to deploy an Ethereum network: bootnodes 4 and peers.
@@ -43,16 +45,17 @@ After deployment, users can run the benchmark themselves. BCTMark provides two p
 
 ## Development and integration
 From a developer’s point of view, all the following necessary actions must be implemented to integrate a new blockchain to be tested:
-— Deployment: write a new Ansible playbook (cf. subsection 4.3.2) that specifies how to deploy, backup, and delete the system;
-— Metric collection: write a Telegraf plugin (cf. subsection 4.3.2) to gather system-specific metrics (e.g., block emission rate) if not already available through HTTP web services (BCTMark can collect metrics exposed at a given HTTP endpoint);
-— Adhoc Load generation: write functions that correspond to an interaction one can have with the system (e.g., how to send a transaction, how to call a smart contract, ...);
-— Reproducible Load generation: implement functions to backup transactions (and serialize those) and functions to replay a given serialized transaction.
-A developer/researcher would benefit from the design of BCTMark as a framework to easily integrate its new blockchain technology to be tested. Indeed, BCTMark already provides:
-— Deployment: portability of deployment on several testbeds that support SSH;
-— Network emulation: latency, bandwidth limits, ...;
-— Metric collection: a collection of metrics related to the infrastructure (e.g., CPU
-usage);
-— Load generation: distribution of the load to generate among workers.
+- Deployment: write a new Ansible playbook (cf. subsection 4.3.2) that specifies how to deploy, backup, and delete the system;
+- Metric collection: write a Telegraf plugin (cf. subsection 4.3.2) to gather system-specific metrics (e.g., block emission rate) if not already available through HTTP web services (BCTMark can collect metrics exposed at a given HTTP endpoint);
+- Adhoc Load generation: write functions that correspond to an interaction one can have with the system (e.g., how to send a transaction, how to call a smart contract, ...);
+- Reproducible Load generation: implement functions to backup transactions (and serialize those) and functions to replay a given serialized transaction.
+
+A developer or researcher would benefit from the design of BCTMark as a framework to easily integrate its new blockchain technology to be tested. Indeed, BCTMark already provides:
+- Deployment: portability of deployment on several testbeds that support SSH;
+- Network emulation: latency, bandwidth limits, ...;
+- Metric collection: a collection of metrics related to the infrastructure (e.g., CPU usage);
+- Load generation: distribution of the load to generate among workers.
+
 Only specific interactions with the blockchain to be tested need to be implemented.
 
 # Architecture
@@ -62,7 +65,9 @@ To avoid reinventing the wheel, BCTMark is based on state-of-the-art, industry-p
 
 ## Deployment
 BCTMark can deploy the entire experiment stack: system under test, monitoring system, and load generators.
+
 Deployment does not require any agent installation on the machines. They are managed through SSH. A playbook defines the configuration to be deployed, which takes the form of configuration files in YAML format. Those configuration files make it possible to specify the desired deployment in an explicit, documented, and repeatable way. BCT- Mark also provides an abstraction layer of the underlying infrastructure. The deployment topology can be described from a high-level point of view, portable on different testbeds. That makes experiments portable on various infrastructures such as Vagrant (local deployment), Grid’5000, and Chameleon.
+
 To manage deployment, BCTMark uses EnosLib [31] (an open-source library to build experimental frameworks) and Ansible [1] (a software that allows managing deployment of configuration on a cluster). These two components enable self-describing, reproducible deployments.
 
 ## Metrics management
@@ -74,6 +79,7 @@ One strength of BCTMark is its ability to describe simply the desired network to
 
 ## Load generation
 BCTMark supports two ways to generate workloads (By workload, we mean transactions to be processed by the system under test): an ad hoc load generation (based on Python scripts) and a load generation based on history. The first one uses Locust [64], a load generator written in Python. The user needs to specify, through Python methods, any interaction a user can have with the system under test (e.g., sending a transaction to someone or deploying/calling a smart contract). Locust will then use those methods to generate random loads.
+
 The second way to generate load is based on a provided history. BCTMark can extract the history of a peer in the system and serialize it in a YAML file containing all the transactions. To reproduce the history, it can split the transactions between different workers, create the number of accounts needed to replay it, and let the workers re-run the transactions. This way, we can aim to replay transactions issued from the mainnet of a targeted blockchain system.
 
 ## Energy consumption
